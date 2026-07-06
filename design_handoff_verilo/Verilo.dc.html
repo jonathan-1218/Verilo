@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body{margin:0;background:#0D0B09}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    @keyframes ping{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.5);opacity:0}}
+    @keyframes wv1{0%,100%{height:5px}50%{height:28px}}
+    @keyframes wv2{0%,100%{height:14px}50%{height:5px}}
+    @keyframes wv3{0%,100%{height:9px}50%{height:36px}}
+    @keyframes wv4{0%,100%{height:20px}50%{height:8px}}
+    @keyframes mapFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:#0D0B09;display:flex;flex-direction:column;align-items:center;padding:28px 16px 24px;box-sizing:border-box;gap:16px">
+
+  <x-import component-from-global-scope="AndroidDevice" from="./android-frame.jsx" hint-size="412px,892px">
+    <div style="height:100%;overflow:hidden;display:flex;flex-direction:column;background:#1E1B18;font-family:'Space Grotesk',system-ui,sans-serif;color:#EDE8E3">
+
+      <!-- ═══ SPLASH ═══ -->
+      <sc-if value="{{ showSplash }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(170deg,#141210 0%,#1E1A14 55%,#2A2018 100%);position:relative;overflow:hidden;animation:fadeIn .4s ease">
+          <div style="position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 65%)"></div>
+          <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0,rgba(255,255,255,.015) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,rgba(255,255,255,.015) 0,rgba(255,255,255,.015) 1px,transparent 1px,transparent 40px)"></div>
+          <div style="margin-bottom:14px;letter-spacing:-1.5px;position:relative">
+            <span style="font-size:50px;font-weight:700;color:#D4956A">veri</span><span style="font-size:50px;font-weight:700;color:#FFFFFF">lo</span>
+          </div>
+          <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.4);animation:fadeIn .5s .3s both">Every visit. On record.</div>
+          <div style="margin-top:56px;display:flex;align-items:center;gap:8px;animation:fadeIn .5s .7s both">
+            <div style="position:relative;width:8px;height:8px">
+              <div style="position:absolute;inset:0;border-radius:50%;background:#D4956A;animation:ping 1.8s infinite"></div>
+              <div style="position:absolute;inset:0;border-radius:50%;background:#D4956A"></div>
+            </div>
+            <span style="font-size:12px;color:rgba(255,255,255,.35)">Checking device setup…</span>
+          </div>
+          <button onClick="{{ goToOnboarding }}" style="position:absolute;bottom:32px;background:none;border:none;color:rgba(255,255,255,.3);font-size:13px;cursor:pointer;font-family:inherit;padding:10px 24px">Continue →</button>
+        </div>
+      </sc-if>
+
+      <!-- ═══ ONBOARDING ═══ -->
+      <sc-if value="{{ showOnboarding }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;background:#1E1B18;animation:fadeIn .3s ease">
+          <div style="padding:14px 20px 0;text-align:right;flex-shrink:0">
+            <button onClick="{{ goToLogin }}" style="background:none;border:none;color:#5C5550;font-size:13px;cursor:pointer;font-family:inherit;padding:6px">Skip</button>
+          </div>
+          <div style="flex:1;padding:4px 24px 0;display:flex;flex-direction:column">
+            <div style="display:{{ ob0Display }};flex-direction:column;flex:1;animation:slideUp .3s ease">
+              <div style="margin-top:12px;height:282px;border-radius:20px;background:#2E2A26;overflow:hidden;position:relative;flex-shrink:0">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#2E2A26 0,#2E2A26 12px,#272320 12px,#272320 24px)"></div>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+                  <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                    <circle cx="40" cy="40" r="32" stroke="#B87040" stroke-width="1" opacity="0.2"/>
+                    <circle cx="40" cy="40" r="20" stroke="#B87040" stroke-width="1.5" opacity="0.4"/>
+                    <circle cx="40" cy="40" r="9" fill="#D08848" opacity="0.9"/>
+                    <line x1="40" y1="4" x2="40" y2="76" stroke="#B87040" stroke-width="1" opacity="0.15"/>
+                    <line x1="4" y1="40" x2="76" y2="40" stroke="#B87040" stroke-width="1" opacity="0.15"/>
+                  </svg>
+                </div>
+                <div style="position:absolute;bottom:14px;left:14px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#B87040;background:rgba(184,112,64,.08);padding:4px 11px;border-radius:20px;border:1px solid rgba(184,112,64,.15)">SHA-256 · GPS · SEALED</div>
+              </div>
+              <div style="margin-top:24px">
+                <div style="font-size:23px;font-weight:700;line-height:1.2;margin-bottom:8px;color:#EDE8E3">Evidence that holds up</div>
+                <div style="font-size:14px;color:#9A8F88;line-height:1.7">Geo-tag every photo at the moment of capture. GPS accuracy, timestamp, and device signature — sealed at source.</div>
+              </div>
+            </div>
+            <div style="display:{{ ob1Display }};flex-direction:column;flex:1;animation:slideUp .3s ease">
+              <div style="margin-top:12px;height:282px;border-radius:20px;background:#2E2A26;overflow:hidden;position:relative;flex-shrink:0">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#2E2A26 0,#2E2A26 12px,#272320 12px,#272320 24px)"></div>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+                  <div style="display:flex;align-items:center;gap:4px;height:52px">
+                    <div style="width:4px;border-radius:2px;background:#D08848;animation:wv1 1.2s 0.00s infinite ease-in-out"></div>
+                    <div style="width:4px;border-radius:2px;background:#D08848;animation:wv3 1.2s 0.08s infinite ease-in-out"></div>
+                    <div style="width:4px;border-radius:2px;background:#D08848;animation:wv2 1.2s 0.16s infinite ease-in-out"></div>
+                    <div style="width:4px;border-radius:2px;background:#D08848;animation:wv4 1.2s 0.24s infinite ease-in-out"></div>
+                    <div style="width:4px;border-radius:2px;background:#D08848;animation:wv1 1.2s 0.32s infinite ease-in-out"></div>
+                    <div style="width:4px;border-radius:2px;background:#D08848;animation:wv3 1.2s 0.40s infinite ease-in-out"></div>
+                    <div style="width:4px;border-radius:2px;background:#D08848;animation:wv2 1.2s 0.48s infinite ease-in-out"></div>
+                    <div style="width:4px;border-radius:2px;background:#D08848;animation:wv4 1.2s 0.56s infinite ease-in-out"></div>
+                    <div style="width:4px;border-radius:2px;background:#D08848;animation:wv1 1.2s 0.64s infinite ease-in-out"></div>
+                  </div>
+                  <div style="font-size:10px;color:#9A8F88;font-family:'JetBrains Mono',monospace">Whisper Large V3 Turbo · on-device</div>
+                </div>
+              </div>
+              <div style="margin-top:24px">
+                <div style="font-size:23px;font-weight:700;line-height:1.2;margin-bottom:8px;color:#EDE8E3">Voice to verified report</div>
+                <div style="font-size:14px;color:#9A8F88;line-height:1.7">Speak your field notes. Whisper transcribes on-device. Gemma structures it into a PDF report — all completely offline.</div>
+              </div>
+            </div>
+            <div style="display:{{ ob2Display }};flex-direction:column;flex:1;animation:slideUp .3s ease">
+              <div style="margin-top:12px;height:282px;border-radius:20px;background:#2E2A26;overflow:hidden;position:relative;flex-shrink:0">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#2E2A26 0,#2E2A26 12px,#272320 12px,#272320 24px)"></div>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px">
+                  <svg width="62" height="70" viewBox="0 0 62 70" fill="none">
+                    <path d="M31 2 L60 14 L60 38 Q60 56 31 68 Q2 56 2 38 L2 14 Z" stroke="#B87040" stroke-width="1.5" fill="rgba(184,112,64,.06)"/>
+                    <path d="M19 35 L27 43 L43 27" stroke="#D08848" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <div style="font-size:10px;color:#9A8F88;font-family:'JetBrains Mono',monospace">AES-256 · Android Keystore</div>
+                </div>
+              </div>
+              <div style="margin-top:24px">
+                <div style="font-size:23px;font-weight:700;line-height:1.2;margin-bottom:8px;color:#EDE8E3">Private by design</div>
+                <div style="font-size:14px;color:#9A8F88;line-height:1.7">Data never leaves your device unencrypted. Android Keystore signing. Cloud sync is always opt-in, always AES-256.</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:18px 24px 28px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;justify-content:center;align-items:center;gap:7px">
+              <div style="height:5px;border-radius:3px;width:{{ ob0DotW }};background:{{ ob0DotC }};transition:all .35s ease"></div>
+              <div style="height:5px;border-radius:3px;width:{{ ob1DotW }};background:{{ ob1DotC }};transition:all .35s ease"></div>
+              <div style="height:5px;border-radius:3px;width:{{ ob2DotW }};background:{{ ob2DotC }};transition:all .35s ease"></div>
+            </div>
+            <button onClick="{{ nextPage }}" style="padding:16px;border-radius:14px;background:#B87040;border:none;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;width:100%">{{ nextBtnLabel }}</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ MODEL DOWNLOAD ═══ -->
+      <sc-if value="{{ showModelDownload }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;padding:28px 22px;background:#1E1B18;animation:fadeIn .3s ease">
+          <div style="font-size:22px;font-weight:700;margin-bottom:6px;color:#EDE8E3">One-time setup</div>
+          <div style="font-size:13px;color:#9A8F88;margin-bottom:18px">Downloading AI models. Recommended: use Wi-Fi.</div>
+          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(200,120,48,.12);border:1px solid rgba(200,120,48,.25);padding:6px 13px;border-radius:20px;margin-bottom:28px;width:fit-content">
+            <div style="width:6px;height:6px;border-radius:50%;background:#C87830;animation:pulse 1.8s infinite"></div>
+            <span style="font-size:11px;color:#BF7828;font-weight:500">~1.3 GB total · Wi-Fi recommended</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="background:#252220;border-radius:14px;padding:18px;box-shadow:0 1px 4px rgba(255,255,255,.06)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+                <div><div style="font-size:14px;font-weight:600;color:#EDE8E3">Whisper Large V3 Turbo</div><div style="font-size:11px;color:#9A8F88;margin-top:3px">On-device transcription · Q5_0</div></div>
+                <span style="font-size:13px;font-weight:700;color:#B87040">{{ whisperPct }}</span>
+              </div>
+              <div style="height:5px;background:#2E2A26;border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:{{ whisperWidth }};background:linear-gradient(90deg,#B87040,#D08848);border-radius:3px;transition:width .15s linear"></div>
+              </div>
+              <div style="margin-top:7px;font-size:10px;color:#5C5550;font-family:'JetBrains Mono',monospace">{{ whisperMB }} MB / 600 MB</div>
+            </div>
+            <div style="background:#252220;border-radius:14px;padding:18px;box-shadow:0 1px 4px rgba(255,255,255,.06)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+                <div><div style="font-size:14px;font-weight:600;color:#EDE8E3">Gemma 3 1B (quantised)</div><div style="font-size:11px;color:#9A8F88;margin-top:3px">Report structuring · Q4_K_M</div></div>
+                <span style="font-size:13px;font-weight:700;color:#B87040">{{ gemmaPct }}</span>
+              </div>
+              <div style="height:5px;background:#2E2A26;border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:{{ gemmaWidth }};background:linear-gradient(90deg,#B87040,#D08848);border-radius:3px;transition:width .15s linear"></div>
+              </div>
+              <div style="margin-top:7px;font-size:10px;color:#5C5550;font-family:'JetBrains Mono',monospace">{{ gemmaMB }} MB / 700 MB</div>
+            </div>
+          </div>
+          <div style="margin-top:auto;padding-top:24px;border-top:1px solid rgba(255,255,255,.06)">
+            <div style="font-size:12px;color:#5C5550;line-height:1.6;text-align:center">Models run entirely on your device.<br>Nothing is ever uploaded to a server.</div>
+          </div>
+          <button onClick="{{ goToLogin }}" style="margin-top:10px;background:none;border:none;color:#5C5550;font-size:12px;cursor:pointer;font-family:inherit;padding:8px">Skip for demo →</button>
+        </div>
+      </sc-if>
+
+      <!-- ═══ LOGIN ═══ -->
+      <sc-if value="{{ showLogin }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;padding:44px 26px 32px;background:#1E1B18;animation:fadeIn .3s ease">
+          <div style="margin-bottom:36px">
+            <span style="font-size:28px;font-weight:700;letter-spacing:-.5px;color:#B87040">veri</span><span style="font-size:28px;font-weight:700;letter-spacing:-.5px;color:#EDE8E3">lo</span>
+          </div>
+          <div style="font-size:24px;font-weight:700;margin-bottom:6px;color:#EDE8E3">Sign in</div>
+          <div style="font-size:14px;color:#9A8F88;margin-bottom:28px;line-height:1.55">We'll send a magic link to your work email. No password needed.</div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:10px;font-weight:600;color:#9A8F88;margin-bottom:7px;letter-spacing:.8px;text-transform:uppercase">Work email</div>
+            <div style="padding:14px 16px;background:#252220;border:1.5px solid rgba(184,112,64,.35);border-radius:12px;font-size:15px;display:flex;align-items:center;gap:4px;box-shadow:0 0 0 4px rgba(184,112,64,.06)">
+              <span style="color:#5C5550">riya.desai@</span><span style="color:#B87040;font-weight:500">tatacsr.in</span>
+              <div style="margin-left:auto;width:2px;height:17px;background:#D08848;animation:pulse .85s infinite"></div>
+            </div>
+          </div>
+          <button onClick="{{ goToDashboard }}" style="width:100%;padding:15px;border-radius:14px;background:#B87040;border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:18px;box-shadow:0 4px 16px rgba(184,112,64,.3)">Send Magic Link</button>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+            <div style="flex:1;height:1px;background:rgba(255,255,255,.08)"></div>
+            <span style="font-size:12px;color:#5C5550">or</span>
+            <div style="flex:1;height:1px;background:rgba(255,255,255,.08)"></div>
+          </div>
+          <button onClick="{{ goToDashboard }}" style="width:100%;padding:13px;border-radius:14px;background:#252220;border:1.5px solid rgba(255,255,255,.1);color:#EDE8E3;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="rgba(255,255,255,.12)" stroke-width="1"/><text x="9" y="13" text-anchor="middle" font-size="10" fill="#EDE8E3" font-family="system-ui" font-weight="bold">G</text></svg>
+            Continue with Google
+          </button>
+          <div style="margin-top:auto;text-align:center;font-size:12px;color:#5C5550;line-height:1.65">Your data stays on your device<br>until you choose to sync.</div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ DASHBOARD ═══ -->
+      <sc-if value="{{ showDashboard }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fadeIn .3s ease;background:#1E1B18">
+          <!-- Offline banner -->
+          <div style="display:{{ offlineBannerDisplay }};background:rgba(200,120,48,.12);border-bottom:1px solid rgba(200,120,48,.2);padding:8px 18px;align-items:center;gap:8px;flex-shrink:0">
+            <div style="width:6px;height:6px;border-radius:50%;background:#C87830;flex-shrink:0"></div>
+            <span style="font-size:12px;color:#BF7828;font-weight:500">Offline — saving visits locally</span>
+            <span style="margin-left:auto;font-size:11px;color:#BF7828;opacity:.7">3 pending</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:18px 18px 0">
+            <!-- Header row -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <div>
+                <div style="font-size:12px;color:#9A8F88;margin-bottom:2px">Good morning</div>
+                <div style="font-size:20px;font-weight:700;color:#EDE8E3">Riya Desai</div>
+              </div>
+              <div onClick="{{ toggleOffline }}" style="width:38px;height:38px;border-radius:50%;background:#fff;border:1.5px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 4px rgba(255,255,255,.06)">
+                <div style="display:flex;flex-direction:column;gap:3px;align-items:center">
+                  <div style="width:14px;height:1.5px;background:#9A8F88;border-radius:1px"></div>
+                  <div style="width:14px;height:1.5px;background:#9A8F88;border-radius:1px"></div>
+                  <div style="width:14px;height:1.5px;background:#9A8F88;border-radius:1px"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Stats -->
+            <div style="display:flex;gap:8px;margin-bottom:18px">
+              <div style="flex:1;background:#252220;border-radius:12px;padding:14px 10px;text-align:center;box-shadow:0 1px 4px rgba(255,255,255,.05)">
+                <div style="font-size:22px;font-weight:700;color:#D08848">3</div>
+                <div style="font-size:10px;color:#9A8F88;margin-top:2px;line-height:1.3">Visits<br>this month</div>
+              </div>
+              <div style="flex:1;background:#252220;border-radius:12px;padding:14px 10px;text-align:center;box-shadow:0 1px 4px rgba(255,255,255,.05)">
+                <div style="font-size:22px;font-weight:700;color:#C87830">2</div>
+                <div style="font-size:10px;color:#9A8F88;margin-top:2px;line-height:1.3">Reports<br>pending</div>
+              </div>
+              <div style="flex:1;background:#252220;border-radius:12px;padding:14px 10px;text-align:center;box-shadow:0 1px 4px rgba(255,255,255,.05)">
+                <div style="font-size:22px;font-weight:700;color:#EDE8E3">5</div>
+                <div style="font-size:10px;color:#9A8F88;margin-top:2px;line-height:1.3">Active<br>projects</div>
+              </div>
+            </div>
+            <!-- View toggle -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div style="font-size:14px;font-weight:600;color:#EDE8E3">Projects</div>
+              <div style="display:flex;background:#332F2A;border-radius:20px;padding:3px;gap:0">
+                <button onClick="{{ setDashList }}" style="padding:5px 14px;border-radius:17px;background:{{ dashBtnListBg }};border:none;color:{{ dashBtnListColor }};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">List</button>
+                <button onClick="{{ setDashMap }}" style="padding:5px 14px;border-radius:17px;background:{{ dashBtnMapBg }};border:none;color:{{ dashBtnMapColor }};font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s">Map</button>
+              </div>
+            </div>
+
+            <!-- LIST VIEW -->
+            <div style="display:{{ dashListDisplay }};flex-direction:column;gap:10px;margin-bottom:20px">
+              <div onClick="{{ goToProjectDetail }}" style="background:#252220;border-radius:16px;padding:14px;cursor:pointer;box-shadow:0 1px 6px rgba(255,255,255,.06)">
+                <div style="height:76px;border-radius:10px;overflow:hidden;position:relative;background:#2E2A26;margin-bottom:12px">
+                  <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#2E2A26 0,#2E2A26 10px,#272320 10px,#272320 20px)"></div>
+                  <div style="position:absolute;bottom:8px;left:8px;background:rgba(184,112,64,.1);border:1px solid rgba(184,112,64,.18);padding:3px 9px;border-radius:20px;font-size:9px;color:#B87040;font-weight:600">WASH PROJECT</div>
+                  <div style="position:absolute;top:8px;right:8px;font-size:9px;color:#9A8F88">Last visit: 2d ago</div>
+                </div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:3px;color:#EDE8E3">Nandgram School WASH</div>
+                <div style="font-size:12px;color:#9A8F88;margin-bottom:8px">Raigad, Maharashtra</div>
+                <div style="display:flex;gap:6px;margin-bottom:10px">
+                  <span style="font-size:9px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(184,112,64,.12);color:#B87040">SDG4</span>
+                  <span style="font-size:9px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(184,112,64,.12);color:#B87040">SDG6</span>
+                  <span style="font-size:9px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(72,128,200,.12);color:#4880C8;margin-left:auto">Active</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="flex:1;height:4px;background:#332F2A;border-radius:2px"><div style="width:57%;height:100%;background:#D08848;border-radius:2px"></div></div>
+                  <span style="font-size:11px;color:#9A8F88;white-space:nowrap">4 / 7</span>
+                </div>
+              </div>
+              <div style="background:#252220;border-radius:16px;padding:14px;box-shadow:0 1px 6px rgba(255,255,255,.06)">
+                <div style="height:76px;border-radius:10px;overflow:hidden;position:relative;background:#2E2A26;margin-bottom:12px">
+                  <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#2E2A26 0,#2E2A26 10px,#272320 10px,#272320 20px)"></div>
+                  <div style="position:absolute;bottom:8px;left:8px;background:rgba(72,128,200,.08);border:1px solid rgba(72,128,200,.18);padding:3px 9px;border-radius:20px;font-size:9px;color:#4880C8;font-weight:600">SKILL CENTRE</div>
+                  <div style="position:absolute;top:8px;right:8px;font-size:9px;color:#9A8F88">Last visit: 1w ago</div>
+                </div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:3px;color:#EDE8E3">Ambedkar Skill Centre</div>
+                <div style="font-size:12px;color:#9A8F88;margin-bottom:8px">Pune District, Maharashtra</div>
+                <div style="display:flex;gap:6px;margin-bottom:10px">
+                  <span style="font-size:9px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(72,128,200,.12);color:#4880C8">SDG8</span>
+                  <span style="font-size:9px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(200,120,48,.12);color:#BF7828;margin-left:auto">Review due</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="flex:1;height:4px;background:#332F2A;border-radius:2px"><div style="width:40%;height:100%;background:#C87830;border-radius:2px"></div></div>
+                  <span style="font-size:11px;color:#9A8F88;white-space:nowrap">2 / 5</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- MAP VIEW -->
+            <div style="display:{{ dashMapDisplay }};flex-direction:column;gap:12px;margin-bottom:20px">
+              <!-- Maharashtra map -->
+              <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 6px rgba(255,255,255,.06)">
+                <!-- Map container -->
+                <div style="position:relative;height:230px;background:#2A2218;overflow:hidden">
+                  <!-- SVG map -->
+                  <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 376 230" preserveAspectRatio="xMidYMid meet">
+                    <!-- Background terrain -->
+                    <rect width="376" height="230" fill="#2A2218"/>
+                    <!-- Grid lines (roads/grid) -->
+                    <g stroke="rgba(255,255,255,.25)" stroke-width=".5">
+                      <line x1="0" y1="46" x2="376" y2="46"/>
+                      <line x1="0" y1="92" x2="376" y2="92"/>
+                      <line x1="0" y1="138" x2="376" y2="138"/>
+                      <line x1="0" y1="184" x2="376" y2="184"/>
+                      <line x1="75" y1="0" x2="75" y2="230"/>
+                      <line x1="150" y1="0" x2="150" y2="230"/>
+                      <line x1="225" y1="0" x2="225" y2="230"/>
+                      <line x1="300" y1="0" x2="300" y2="230"/>
+                    </g>
+                    <!-- Neighboring state areas (subtle) -->
+                    <rect x="0" y="0" width="376" height="230" fill="rgba(255,255,255,.12)" rx="0"/>
+                    <!-- Arabian Sea (west, blue) -->
+                    <path d="M 0,45 Q 22,85 46,118 L 72,155 L 64,230 L 0,230 Z" fill="#1C2830" opacity="0.65"/>
+                    <!-- Sea waves pattern -->
+                    <path d="M 5,80 Q 12,75 18,80 Q 24,85 30,80" stroke="rgba(255,255,255,.4)" stroke-width="1" fill="none"/>
+                    <path d="M 8,95 Q 15,90 21,95 Q 27,100 33,95" stroke="rgba(255,255,255,.3)" stroke-width="1" fill="none"/>
+                    <!-- Maharashtra state outline -->
+                    <path d="M 108,26 L 296,32 L 280,136 L 182,144 L 100,146 L 72,158 L 46,118 L 58,68 Z" fill="#332A20" fill-opacity="0.9" stroke="#5C4A38" stroke-width="1.5"/>
+                    <!-- Internal district dividers (subtle) -->
+                    <path d="M 120,60 L 200,55 M 140,90 L 240,88 M 100,115 L 170,118" stroke="rgba(150,176,144,.5)" stroke-width=".8" fill="none"/>
+                    <!-- Coastal highlight -->
+                    <path d="M 46,118 Q 56,130 72,158" stroke="#7AACBC" stroke-width="2" fill="none" opacity="0.6"/>
+                    <!-- Neighbor state labels -->
+                    <text x="18" y="18" font-size="8" fill="rgba(255,255,255,.2)" font-family="system-ui">Gujarat</text>
+                    <text x="155" y="16" font-size="8" fill="rgba(255,255,255,.2)" font-family="system-ui">Madhya Pradesh</text>
+                    <text x="308" y="90" font-size="8" fill="rgba(255,255,255,.2)" font-family="system-ui">Telangana</text>
+                    <text x="140" y="168" font-size="8" fill="rgba(255,255,255,.2)" font-family="system-ui">Karnataka</text>
+                    <text x="2" y="175" font-size="8" fill="rgba(255,255,255,.2)" font-family="system-ui">Goa</text>
+                    <!-- City reference dots -->
+                    <circle cx="52" cy="106" r="2" fill="rgba(255,255,255,.2)"/>
+                    <text x="55" y="104" font-size="7" fill="rgba(0,0,0,.3)" font-family="system-ui">Mumbai</text>
+                    <circle cx="155" cy="55" r="2" fill="rgba(255,255,255,.16)"/>
+                    <text x="158" y="53" font-size="7" fill="rgba(255,255,255,.2)" font-family="system-ui">Nashik</text>
+                    <circle cx="270" cy="58" r="2" fill="rgba(255,255,255,.16)"/>
+                    <text x="273" y="56" font-size="7" fill="rgba(255,255,255,.2)" font-family="system-ui">Nagpur</text>
+                  </svg>
+                  <!-- Project pin 1: Nandgram WASH (Raigad) -->
+                  <div style="position:absolute;left:48px;top:86px">
+                    <!-- Info card above pin -->
+                    <div style="position:absolute;bottom:18px;left:-10px;background:#B87040;color:#fff;border-radius:8px;padding:5px 8px;white-space:nowrap;font-size:10px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.2);animation:mapFloat 3s ease-in-out infinite">
+                      Nandgram WASH
+                      <div style="font-size:9px;font-weight:400;opacity:.8">Raigad · Active</div>
+                      <div style="position:absolute;bottom:-5px;left:12px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid #B87040"></div>
+                    </div>
+                    <!-- Pin dot -->
+                    <div style="position:relative;width:12px;height:12px">
+                      <div style="position:absolute;inset:-4px;border-radius:50%;background:rgba(184,112,64,.2);animation:ping 2s infinite"></div>
+                      <div style="position:absolute;inset:0;border-radius:50%;background:#B87040;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25)"></div>
+                    </div>
+                  </div>
+                  <!-- Project pin 2: Ambedkar Centre (Pune) -->
+                  <div style="position:absolute;left:80px;top:112px">
+                    <div style="position:absolute;bottom:18px;left:-8px;background:#C87830;color:#fff;border-radius:8px;padding:5px 8px;white-space:nowrap;font-size:10px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.2);animation:mapFloat 3s .8s ease-in-out infinite">
+                      Ambedkar Skill Centre
+                      <div style="font-size:9px;font-weight:400;opacity:.85">Pune · Review due</div>
+                      <div style="position:absolute;bottom:-5px;left:12px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid #C87830"></div>
+                    </div>
+                    <div style="position:relative;width:12px;height:12px">
+                      <div style="position:absolute;inset:-4px;border-radius:50%;background:rgba(200,120,48,.2);animation:ping 2s .6s infinite"></div>
+                      <div style="position:absolute;inset:0;border-radius:50%;background:#C87830;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25)"></div>
+                    </div>
+                  </div>
+                  <!-- Region label -->
+                  <div style="position:absolute;top:10px;left:10px;background:rgba(22,18,14,.88);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;color:#EDE8E3">Maharashtra · Western India</div>
+                  <!-- Legend -->
+                  <div style="position:absolute;bottom:10px;right:10px;background:rgba(22,18,14,.88);border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:4px">
+                    <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:#B87040"></div><span style="font-size:9px;color:#EDE8E3">Active</span></div>
+                    <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:#C87830"></div><span style="font-size:9px;color:#EDE8E3">Review due</span></div>
+                  </div>
+                </div>
+                <!-- Location summary cards below map -->
+                <div style="padding:12px">
+                  <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">2 projects · Maharashtra</div>
+                  <div onClick="{{ goToProjectDetail }}" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:#1E1B18;cursor:pointer;margin-bottom:6px">
+                    <div style="width:8px;height:8px;border-radius:50%;background:#B87040;flex-shrink:0"></div>
+                    <div style="flex:1">
+                      <div style="font-size:13px;font-weight:600;color:#EDE8E3">Nandgram School WASH</div>
+                      <div style="font-size:11px;color:#9A8F88">Raigad · 23.1234°N 73.5678°E</div>
+                    </div>
+                    <span style="font-size:12px;color:#5C5550">›</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:#1E1B18">
+                    <div style="width:8px;height:8px;border-radius:50%;background:#C87830;flex-shrink:0"></div>
+                    <div style="flex:1">
+                      <div style="font-size:13px;font-weight:600;color:#EDE8E3">Ambedkar Skill Centre</div>
+                      <div style="font-size:11px;color:#9A8F88">Pune · 18.5204°N 73.8567°E</div>
+                    </div>
+                    <span style="font-size:12px;color:#5C5550">›</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- New Project FAB -->
+          <div style="position:relative;flex-shrink:0">
+            <button onClick="{{ goToCreateProject }}" style="position:absolute;right:18px;bottom:70px;padding:11px 18px;border-radius:26px;background:#B87040;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 6px 20px rgba(184,112,64,.45);display:flex;align-items:center;gap:7px;z-index:10">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="#fff" stroke-width="1.2"/><path d="M6.5 4v5M4 6.5h5" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg>
+              New Project
+            </button>
+          </div>
+          <!-- Bottom nav -->
+          <div style="height:56px;background:#141210;display:flex;flex-shrink:0">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><div style="width:20px;height:2.5px;background:rgba(255,255,255,.3);border-radius:2px"></div><span style="font-size:10px;color:rgba(255,255,255,.45)">Profile</span></div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ CREATE PROJECT WIZARD ═══ -->
+      <sc-if value="{{ showCreateProject }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fadeIn .3s ease;background:#1E1B18">
+          <div style="padding:14px 18px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.07)">
+            <button onClick="{{ goToDashboard }}" style="background:none;border:none;color:#9A8F88;cursor:pointer;font-size:20px;padding:2px 0;font-family:inherit;line-height:1">&#8592;</button>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:700;color:#EDE8E3">New Project</div>
+              <div style="font-size:11px;color:#9A8F88;margin-top:2px">{{ createStepLabel }}</div>
+            </div>
+            <div style="font-size:11px;font-weight:600;color:#B87040;background:rgba(184,112,64,.12);padding:4px 10px;border-radius:20px">{{ createStepNum }}</div>
+          </div>
+          <div style="height:3px;background:#252220;flex-shrink:0">
+            <div style="height:100%;width:{{ createProgressW }};background:linear-gradient(90deg,#8C5020,#D08848);transition:width .35s ease"></div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:18px 18px 100px">
+
+            <!-- Step 1: Basic Info -->
+            <div style="display:{{ step0Display }};flex-direction:column;gap:16px;animation:slideUp .25s ease">
+              <div style="font-size:18px;font-weight:700;color:#EDE8E3;margin-bottom:2px">What is this project?</div>
+              <div>
+                <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">Project name</div>
+                <div style="background:#252220;border:1.5px solid rgba(184,112,64,.45);border-radius:12px;padding:13px 16px;font-size:14px;color:#EDE8E3;display:flex;align-items:center;gap:4px">Nandgram School WASH<div style="width:2px;height:16px;background:#D08848;animation:pulse .85s infinite;margin-left:2px"></div></div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">Category</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <div style="padding:8px 14px;border-radius:20px;background:#B87040;color:#fff;font-size:12px;font-weight:600">WASH</div>
+                  <div style="padding:8px 14px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:12px">Education</div>
+                  <div style="padding:8px 14px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:12px">Livelihood</div>
+                  <div style="padding:8px 14px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:12px">Health</div>
+                  <div style="padding:8px 14px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:12px">Environment</div>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">Schedule VII clause</div>
+                <div style="background:#252220;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:13px 16px;font-size:13px;color:#EDE8E3;display:flex;justify-content:space-between;align-items:center"><span>Item (i) — Eradicating poverty</span><span style="color:#9A8F88">&#8250;</span></div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">SDG Alignment</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <div style="padding:7px 13px;border-radius:20px;background:#B87040;color:#fff;font-size:11px;font-weight:700">SDG4 ✓</div>
+                  <div style="padding:7px 13px;border-radius:20px;background:#B87040;color:#fff;font-size:11px;font-weight:700">SDG6 ✓</div>
+                  <div style="padding:7px 13px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:11px">SDG3</div>
+                  <div style="padding:7px 13px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:11px">SDG8</div>
+                  <div style="padding:7px 13px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:11px">SDG10</div>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">Description (optional)</div>
+                <div style="background:#252220;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:13px 16px;font-size:13px;color:#9A8F88;min-height:68px;line-height:1.6">Provide safe sanitation infrastructure for 1,240 students across 5 toilet blocks…</div>
+              </div>
+            </div>
+
+            <!-- Step 2: Location -->
+            <div style="display:{{ step1Display }};flex-direction:column;gap:16px;animation:slideUp .25s ease">
+              <div style="font-size:18px;font-weight:700;color:#EDE8E3;margin-bottom:2px">Where is the site?</div>
+              <div style="border-radius:14px;overflow:hidden;height:148px;position:relative;background:#2A2218">
+                <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 340 148" preserveAspectRatio="xMidYMid slice"><rect width="340" height="148" fill="#2A2218"/><g stroke="rgba(255,255,255,.05)" stroke-width=".5"><line x1="0" y1="37" x2="340" y2="37"/><line x1="0" y1="74" x2="340" y2="74"/><line x1="0" y1="111" x2="340" y2="111"/><line x1="85" y1="0" x2="85" y2="148"/><line x1="170" y1="0" x2="170" y2="148"/><line x1="255" y1="0" x2="255" y2="148"/></g><path d="M 60,28 L 238,26 L 226,108 L 148,116 L 76,114 L 56,88 Z" fill="#332A20" fill-opacity="0.9" stroke="#5C4A38" stroke-width="1"/></svg>
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)"><div style="position:absolute;width:48px;height:48px;border-radius:50%;border:1.5px solid rgba(184,112,64,.3);top:50%;left:50%;transform:translate(-50%,-50%);animation:ping 2.2s infinite"></div><div style="width:12px;height:12px;border-radius:50%;background:#D08848;box-shadow:0 0 14px rgba(208,136,72,.7)"></div></div>
+                <div style="position:absolute;bottom:8px;left:8px;background:rgba(22,18,14,.9);padding:4px 9px;border-radius:7px;font-size:9px;color:#EDE8E3;font-family:'JetBrains Mono',monospace">23.1234°N · 73.5678°E · ±11m</div>
+                <div style="position:absolute;top:8px;right:8px;background:rgba(184,112,64,.15);border:1px solid rgba(184,112,64,.3);padding:3px 8px;border-radius:20px;font-size:9px;color:#B87040;font-weight:600">GPS AUTO-DETECTED</div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">Site / village name</div>
+                <div style="background:#252220;border:1.5px solid rgba(184,112,64,.45);border-radius:12px;padding:13px 16px;font-size:14px;color:#EDE8E3">Nandgram Village</div>
+              </div>
+              <div style="display:flex;gap:10px">
+                <div style="flex:1">
+                  <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">District</div>
+                  <div style="background:#252220;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:13px 16px;font-size:13px;color:#EDE8E3">Raigad</div>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">State</div>
+                  <div style="background:#252220;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:13px 16px;font-size:13px;color:#EDE8E3">Maharashtra</div>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">Geofence radius</div>
+                <div style="display:flex;gap:6px">
+                  <div style="padding:8px 14px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:12px">250m</div>
+                  <div style="padding:8px 14px;border-radius:20px;background:#B87040;color:#fff;font-size:12px;font-weight:600">500m</div>
+                  <div style="padding:8px 14px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:12px">1 km</div>
+                  <div style="padding:8px 14px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:12px">Custom</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3: Timeline and Budget -->
+            <div style="display:{{ step2Display }};flex-direction:column;gap:16px;animation:slideUp .25s ease">
+              <div style="font-size:18px;font-weight:700;color:#EDE8E3;margin-bottom:2px">Timeline &amp; Budget</div>
+              <div style="display:flex;gap:10px">
+                <div style="flex:1">
+                  <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">Start date</div>
+                  <div style="background:#252220;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:13px 16px;font-size:13px;color:#EDE8E3;display:flex;align-items:center;justify-content:space-between"><span>01 Apr 2024</span><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="2.5" width="11" height="10" rx="1.5" stroke="#5C5550" stroke-width="1.1"/><path d="M4 1v3M9 1v3M1 6h11" stroke="#5C5550" stroke-width="1.1" stroke-linecap="round"/></svg></div>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">End date</div>
+                  <div style="background:#252220;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:13px 16px;font-size:13px;color:#EDE8E3;display:flex;align-items:center;justify-content:space-between"><span>31 Mar 2026</span><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="2.5" width="11" height="10" rx="1.5" stroke="#5C5550" stroke-width="1.1"/><path d="M4 1v3M9 1v3M1 6h11" stroke="#5C5550" stroke-width="1.1" stroke-linecap="round"/></svg></div>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">Review interval</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <div style="padding:8px 14px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:12px">Monthly</div>
+                  <div style="padding:8px 14px;border-radius:20px;background:#B87040;color:#fff;font-size:12px;font-weight:600">Quarterly</div>
+                  <div style="padding:8px 14px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:12px">Biannual</div>
+                  <div style="padding:8px 14px;border-radius:20px;background:#252220;border:1px solid rgba(255,255,255,.09);color:#9A8F88;font-size:12px">Annual</div>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px">Total budget (INR)</div>
+                <div style="background:#252220;border:1.5px solid rgba(184,112,64,.45);border-radius:12px;padding:13px 16px;display:flex;align-items:center;gap:8px"><span style="font-size:16px;color:#9A8F88">&#8377;</span><span style="font-size:16px;font-weight:700;color:#EDE8E3">45,00,000</span><div style="width:2px;height:18px;background:#D08848;animation:pulse .85s infinite;margin-left:2px"></div></div>
+              </div>
+              <div style="background:#2A2420;border-radius:12px;padding:13px 16px;border:1px solid rgba(255,255,255,.06)">
+                <div style="font-size:11px;font-weight:600;color:#B87040;margin-bottom:8px">Estimated schedule</div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#5C5550">Duration</span><span style="font-size:11px;color:#EDE8E3;font-weight:600">24 months</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#5C5550">No. of reviews</span><span style="font-size:11px;color:#EDE8E3;font-weight:600">8 quarterly</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#5C5550">Budget per month</span><span style="font-size:11px;color:#EDE8E3;font-weight:600">&#8377;1,87,500</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4: Team + Summary -->
+            <div style="display:{{ step3Display }};flex-direction:column;gap:16px;animation:slideUp .25s ease">
+              <div style="font-size:18px;font-weight:700;color:#EDE8E3;margin-bottom:2px">Who's on this project?</div>
+              <div style="background:#252220;border-radius:12px;padding:13px 16px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#8C5020,#D08848);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#fff">RD</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#EDE8E3">Riya Desai</div><div style="font-size:11px;color:#5C5550">CSR Officer</div></div><span style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(184,112,64,.12);color:#B87040">LEAD</span></div>
+                <div style="height:1px;background:rgba(255,255,255,.06)"></div>
+                <div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:50%;background:#2E2A26;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#9A8F88">AP</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#EDE8E3">Arjun Patil</div><div style="font-size:11px;color:#5C5550">District PM</div></div><button style="background:none;border:1px solid rgba(255,255,255,.1);color:#9A8F88;font-size:11px;cursor:pointer;font-family:inherit;padding:4px 10px;border-radius:20px">Remove</button></div>
+                <div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:50%;background:#2E2A26;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#9A8F88">SM</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#EDE8E3">Sunita Marathe</div><div style="font-size:11px;color:#5C5550">External Auditor</div></div><button style="background:none;border:1px solid rgba(255,255,255,.1);color:#9A8F88;font-size:11px;cursor:pointer;font-family:inherit;padding:4px 10px;border-radius:20px">Remove</button></div>
+              </div>
+              <button style="width:100%;padding:12px;border-radius:12px;background:transparent;border:1.5px dashed rgba(184,112,64,.3);color:#B87040;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="#B87040" stroke-width="1.2"/><path d="M6.5 4v5M4 6.5h5" stroke="#B87040" stroke-width="1.2" stroke-linecap="round"/></svg>Add team member</button>
+              <div style="background:#2A2420;border-radius:14px;padding:14px 16px;border:1px solid rgba(184,112,64,.18)">
+                <div style="font-size:10px;font-weight:700;color:#B87040;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Project Summary</div>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#5C5550">Name</span><span style="font-size:11px;color:#EDE8E3;font-weight:600">Nandgram School WASH</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#5C5550">Location</span><span style="font-size:11px;color:#EDE8E3;font-weight:600">Raigad, Maharashtra</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#5C5550">Budget</span><span style="font-size:11px;color:#EDE8E3;font-weight:600">&#8377;45,00,000</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#5C5550">Timeline</span><span style="font-size:11px;color:#EDE8E3;font-weight:600">Apr 2024 — Mar 2026</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#5C5550">Reviews</span><span style="font-size:11px;color:#EDE8E3;font-weight:600">Quarterly · 8 cycles</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#5C5550">SDGs</span><span style="font-size:11px;color:#EDE8E3;font-weight:600">SDG4, SDG6, SDG10</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#5C5550">Team</span><span style="font-size:11px;color:#EDE8E3;font-weight:600">3 members</span></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <!-- Bottom CTA -->
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 18px 16px;background:linear-gradient(transparent,#1E1B18 30%);display:flex;gap:8px">
+            <sc-if value="{{ showCreateBack }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ createPrev }}" style="padding:14px 20px;border-radius:14px;background:#252220;border:1px solid rgba(255,255,255,.1);color:#9A8F88;font-size:14px;cursor:pointer;font-family:inherit">&#8592;</button>
+            </sc-if>
+            <button onClick="{{ createNext }}" style="flex:1;padding:14px;border-radius:14px;background:#B87040;border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(184,112,64,.3)">{{ createNextLabel }}</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ PROJECT DETAIL ═══ -->
+      <sc-if value="{{ showProjectDetail }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fadeIn .3s ease;background:#1E1B18">
+          <div style="padding:14px 18px 0;display:flex;align-items:center;gap:12px;flex-shrink:0">
+            <button onClick="{{ goToDashboard }}" style="background:none;border:none;color:#9A8F88;cursor:pointer;font-size:20px;padding:2px 0;font-family:inherit;line-height:1">&#8592;</button>
+            <div style="flex:1"><div style="font-size:15px;font-weight:700;color:#EDE8E3;line-height:1.2">Nandgram School WASH</div><div style="font-size:11px;color:#9A8F88;margin-top:2px">Raigad, Maharashtra</div></div>
+            <button onClick="{{ goToProjectParams }}" style="background:#2A2420;border:1px solid rgba(255,255,255,.1);color:#B87040;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;padding:6px 12px;border-radius:20px;display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#B87040" stroke-width="1.1"/><line x1="6" y1="5" x2="6" y2="9" stroke="#B87040" stroke-width="1.2" stroke-linecap="round"/><circle cx="6" cy="3.5" r=".7" fill="#B87040"/></svg>Info</button>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:14px 18px 80px;position:relative">
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+              <span style="font-size:9px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(184,112,64,.12);color:#B87040">SDG4</span>
+              <span style="font-size:9px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(184,112,64,.12);color:#B87040">SDG6</span>
+              <span style="font-size:9px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(72,128,200,.12);color:#4880C8">Active</span>
+              <span style="font-size:9px;font-weight:600;padding:4px 10px;border-radius:20px;background:#2A2420;color:#9A8F88">Schedule VII</span>
+            </div>
+            <div style="background:#252220;border-radius:12px;padding:14px;margin-bottom:18px;display:flex;justify-content:space-between;box-shadow:0 1px 4px rgba(255,255,255,.05)">
+              <div><div style="font-size:10px;color:#9A8F88;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Budget</div><div style="font-size:18px;font-weight:700;color:#EDE8E3">&#8377;45,00,000</div></div>
+              <div style="text-align:right"><div style="font-size:10px;color:#9A8F88;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Period</div><div style="font-size:14px;font-weight:600;color:#EDE8E3">FY 2024–25</div></div>
+            </div>
+            <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Processes</div>
+            <div style="background:#fff;border-radius:14px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 4px rgba(255,255,255,.05)">
+              <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+                <div><div style="font-size:14px;font-weight:600;color:#EDE8E3">Q2 Monitoring</div><div style="font-size:11px;color:#C87830;margin-top:2px">Due 30 Jun 2025</div></div>
+                <span style="font-size:9px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(184,112,64,.12);color:#B87040;letter-spacing:.5px">ACTIVE</span>
+              </div>
+              <div style="padding:0 16px 14px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;gap:10px"><div style="width:18px;height:18px;border-radius:50%;background:#D08848;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L4 7L9 1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="font-size:13px;color:#5C5550;text-decoration:line-through">Baseline data collection</span></div>
+                <div style="display:flex;align-items:center;gap:10px"><div style="width:18px;height:18px;border-radius:50%;background:#D08848;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L4 7L9 1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="font-size:13px;color:#5C5550;text-decoration:line-through">Beneficiary survey</span></div>
+                <div style="display:flex;align-items:center;gap:10px;background:rgba(184,112,64,.12);border:1px solid rgba(184,112,64,.15);border-radius:9px;padding:8px 10px">
+                  <div style="position:relative;width:18px;height:18px;flex-shrink:0"><div style="position:absolute;inset:0;border-radius:50%;border:2px solid #B87040"></div><div style="position:absolute;inset:4px;border-radius:50%;background:#D08848;animation:pulse 1.5s infinite"></div></div>
+                  <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#EDE8E3">Site inspection</div><div style="font-size:10px;color:#B87040;margin-top:1px">Due today</div></div>
+                  <span style="font-size:14px;color:#B87040">›</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px"><div style="width:18px;height:18px;border-radius:50%;border:1.5px solid #3A3028;flex-shrink:0"></div><span style="font-size:13px;color:#5C5550">Photo documentation</span></div>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(255,255,255,.05)">
+              <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+                <div><div style="font-size:14px;font-weight:600;color:#EDE8E3">Annual Review</div><div style="font-size:11px;color:#5C5550;margin-top:2px">Quarterly · Due Dec 2025</div></div>
+                <span style="font-size:9px;font-weight:700;padding:4px 10px;border-radius:20px;background:#2A2420;color:#5C5550;letter-spacing:.5px">UPCOMING</span>
+              </div>
+            </div>
+            <!-- FAB -->
+            <div style="position:absolute;bottom:14px;right:0">
+              <button onClick="{{ goToVisitSetup }}" style="padding:13px 18px;border-radius:24px;background:#B87040;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 6px 20px rgba(184,112,64,.4);display:flex;align-items:center;gap:7px">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#fff" stroke-width="1.5"/><path d="M7 4v6M4 7h6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+                Start Visit
+              </button>
+            </div>
+          </div>
+          <div style="height:56px;background:#141210;display:flex;flex-shrink:0">
+            <div onClick="{{ goToDashboard }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer"><div style="width:20px;height:2.5px;background:rgba(255,255,255,.3);border-radius:2px"></div><span style="font-size:10px;color:rgba(255,255,255,.45)">Home</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><div style="width:20px;height:2.5px;background:#C87941;border-radius:2px"></div><span style="font-size:10px;font-weight:600;color:#C87941">Projects</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><div style="width:20px;height:2.5px;background:rgba(255,255,255,.3);border-radius:2px"></div><span style="font-size:10px;color:rgba(255,255,255,.45)">Visits</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><div style="width:20px;height:2.5px;background:rgba(255,255,255,.3);border-radius:2px"></div><span style="font-size:10px;color:rgba(255,255,255,.45)">Profile</span></div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ PROJECT PARAMS ═══ -->
+      <sc-if value="{{ showProjectParams }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fadeIn .3s ease;background:#1E1B18">
+          <div style="padding:14px 18px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.07)">
+            <button onClick="{{ goToProjectDetail }}" style="background:none;border:none;color:#9A8F88;cursor:pointer;font-size:20px;padding:2px 0;font-family:inherit;line-height:1">&#8592;</button>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:700;color:#EDE8E3">Project Parameters</div>
+              <div style="font-size:11px;color:#9A8F88;margin-top:2px">Nandgram School WASH</div>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:16px 18px 24px;display:flex;flex-direction:column;gap:14px">
+
+            <!-- Timeline -->
+            <div style="background:#252220;border-radius:14px;overflow:hidden">
+              <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#B87040" stroke-width="1.2"/><path d="M7 4v3.5l2.5 1.5" stroke="#B87040" stroke-width="1.2" stroke-linecap="round"/></svg>
+                <span style="font-size:11px;font-weight:700;color:#B87040;text-transform:uppercase;letter-spacing:1px">Timeline</span>
+              </div>
+              <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Start date</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">01 Apr 2024</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">End date</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">31 Mar 2026</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Duration</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">24 months</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Review interval</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">Quarterly</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Next review due</span>
+                  <span style="font-size:12px;font-weight:600;color:#D08848">30 Jun 2025</span>
+                </div>
+                <!-- Progress bar -->
+                <div style="margin-top:4px">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+                    <span style="font-size:10px;color:#5C5550">Overall progress</span>
+                    <span style="font-size:10px;font-weight:600;color:#B87040">57%</span>
+                  </div>
+                  <div style="height:5px;background:#2E2A26;border-radius:3px;overflow:hidden">
+                    <div style="width:57%;height:100%;background:linear-gradient(90deg,#8C5020,#D08848);border-radius:3px"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Budget -->
+            <div style="background:#252220;border-radius:14px;overflow:hidden">
+              <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="9" rx="1.5" stroke="#B87040" stroke-width="1.2"/><path d="M1 6h12" stroke="#B87040" stroke-width="1.2"/><circle cx="7" cy="9" r="1" fill="#B87040"/></svg>
+                <span style="font-size:11px;font-weight:700;color:#B87040;text-transform:uppercase;letter-spacing:1px">Budget</span>
+              </div>
+              <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Total approved</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">&#8377;45,00,000</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Spent to date</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">&#8377;25,65,000</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Remaining</span>
+                  <span style="font-size:12px;font-weight:600;color:#D08848">&#8377;19,35,000</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Burn rate</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">&#8377;1,07,000 / month</span>
+                </div>
+                <div style="height:5px;background:#2E2A26;border-radius:3px;overflow:hidden;margin-top:4px">
+                  <div style="width:57%;height:100%;background:linear-gradient(90deg,#8C5020,#D08848);border-radius:3px"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div style="background:#252220;border-radius:14px;overflow:hidden">
+              <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px">
+                <svg width="12" height="15" viewBox="0 0 12 15" fill="none"><path d="M6 1C3.79 1 2 2.79 2 5c0 3.5 4 9 4 9s4-5.5 4-9c0-2.21-1.79-4-4-4Z" stroke="#B87040" stroke-width="1.2"/><circle cx="6" cy="5" r="1.5" stroke="#B87040" stroke-width="1.1"/></svg>
+                <span style="font-size:11px;font-weight:700;color:#B87040;text-transform:uppercase;letter-spacing:1px">Location</span>
+              </div>
+              <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Site name</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">Nandgram Village</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">District</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">Raigad</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">State</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">Maharashtra</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">GPS coordinates</span>
+                  <span style="font-size:11px;font-weight:500;color:#EDE8E3;font-family:'JetBrains Mono',monospace">23.1234°N 73.5678°E</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Geofence radius</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">500 m</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Intervention -->
+            <div style="background:#252220;border-radius:14px;overflow:hidden">
+              <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11L5 4l3 4 2-3 2 6" stroke="#B87040" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span style="font-size:11px;font-weight:700;color:#B87040;text-transform:uppercase;letter-spacing:1px">Intervention</span>
+              </div>
+              <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Category</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">WASH Infrastructure</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Schedule VII clause</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">Item (i) — Eradicating poverty</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                  <span style="font-size:12px;color:#5C5550">SDG alignment</span>
+                  <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+                    <span style="font-size:9px;font-weight:700;padding:3px 7px;border-radius:20px;background:rgba(184,112,64,.12);color:#B87040">SDG4</span>
+                    <span style="font-size:9px;font-weight:700;padding:3px 7px;border-radius:20px;background:rgba(184,112,64,.12);color:#B87040">SDG6</span>
+                    <span style="font-size:9px;font-weight:700;padding:3px 7px;border-radius:20px;background:rgba(184,112,64,.12);color:#B87040">SDG10</span>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#5C5550">Beneficiaries</span>
+                  <span style="font-size:12px;font-weight:600;color:#EDE8E3">1,240 students</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Team -->
+            <div style="background:#252220;border-radius:14px;overflow:hidden">
+              <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="4" r="2" stroke="#B87040" stroke-width="1.2"/><circle cx="10" cy="4" r="2" stroke="#B87040" stroke-width="1.2"/><path d="M1 12c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="#B87040" stroke-width="1.2" stroke-linecap="round"/><path d="M10 8c1.7.4 3 1.9 3 3.7" stroke="#B87040" stroke-width="1.2" stroke-linecap="round"/></svg>
+                <span style="font-size:11px;font-weight:700;color:#B87040;text-transform:uppercase;letter-spacing:1px">Team</span>
+              </div>
+              <div style="padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#8C5020,#D08848);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:#fff">RD</div>
+                  <div style="flex:1">
+                    <div style="font-size:13px;font-weight:600;color:#EDE8E3">Riya Desai</div>
+                    <div style="font-size:11px;color:#5C5550">CSR Officer · Field lead</div>
+                  </div>
+                  <span style="font-size:9px;font-weight:600;padding:3px 8px;border-radius:20px;background:rgba(184,112,64,.12);color:#B87040">YOU</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:32px;height:32px;border-radius:50%;background:#2E2A26;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:#9A8F88">AP</div>
+                  <div style="flex:1">
+                    <div style="font-size:13px;font-weight:600;color:#EDE8E3">Arjun Patil</div>
+                    <div style="font-size:11px;color:#5C5550">District Program Manager</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:32px;height:32px;border-radius:50%;background:#2E2A26;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:#9A8F88">SM</div>
+                  <div style="flex:1">
+                    <div style="font-size:13px;font-weight:600;color:#EDE8E3">Sunita Marathe</div>
+                    <div style="font-size:11px;color:#5C5550">External Auditor</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ VISIT SETUP ═══ -->
+      <sc-if value="{{ showVisitSetup }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fadeIn .3s ease;background:#1E1B18">
+          <div style="padding:14px 18px 0;display:flex;align-items:center;gap:12px;flex-shrink:0">
+            <button onClick="{{ goToProjectDetail }}" style="background:none;border:none;color:#9A8F88;cursor:pointer;font-size:20px;padding:2px 0;font-family:inherit;line-height:1">&#8592;</button>
+            <div><div style="font-size:15px;font-weight:700;color:#EDE8E3">Starting Visit</div><div style="font-size:11px;color:#9A8F88;margin-top:2px">Nandgram School WASH · Site Inspection</div></div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:14px 18px">
+            <!-- Map -->
+            <div style="border-radius:16px;overflow:hidden;height:220px;position:relative;background:#28201A;margin-bottom:14px">
+              <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 376 220" preserveAspectRatio="xMidYMid slice">
+                <rect width="376" height="220" fill="#2A2218"/>
+                <g stroke="rgba(255,255,255,.2)" stroke-width=".5">
+                  <line x1="0" y1="44" x2="376" y2="44"/><line x1="0" y1="88" x2="376" y2="88"/><line x1="0" y1="132" x2="376" y2="132"/><line x1="0" y1="176" x2="376" y2="176"/>
+                  <line x1="75" y1="0" x2="75" y2="220"/><line x1="150" y1="0" x2="150" y2="220"/><line x1="225" y1="0" x2="225" y2="220"/><line x1="300" y1="0" x2="300" y2="220"/>
+                </g>
+                <path d="M 0,42 Q 20,80 44,115 L 70,152 L 62,220 L 0,220 Z" fill="#1C2830" opacity="0.6"/>
+                <path d="M 106,24 L 292,30 L 276,132 L 180,142 L 98,144 L 70,156 L 44,115 L 56,66 Z" fill="#332A20" fill-opacity="0.9" stroke="#5C4A38" stroke-width="1.5"/>
+              </svg>
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
+                <div style="position:absolute;width:90px;height:90px;border-radius:50%;border:1.5px solid rgba(184,112,64,.2);top:50%;left:50%;transform:translate(-50%,-50%);animation:ping 2.2s infinite"></div>
+                <div style="position:absolute;width:52px;height:52px;border-radius:50%;border:1.5px solid rgba(184,112,64,.38);top:50%;left:50%;transform:translate(-50%,-50%);animation:ping 2.2s .8s infinite"></div>
+                <div style="width:14px;height:14px;border-radius:50%;background:#B87040;box-shadow:0 0 16px rgba(184,112,64,.6)"></div>
+              </div>
+              <div style="position:absolute;bottom:10px;left:10px;background:rgba(22,18,14,.88);padding:5px 10px;border-radius:8px;font-size:10px;color:#EDE8E3;font-family:'JetBrains Mono',monospace">23.1234°N · 73.5678°E</div>
+            </div>
+            <!-- GPS status -->
+            <div style="background:#252220;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(255,255,255,.05)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="position:relative;width:10px;height:10px"><div style="position:absolute;inset:0;border-radius:50%;background:#D08848;animation:ping 1.8s infinite"></div><div style="position:absolute;inset:0;border-radius:50%;background:#D08848"></div></div>
+                  <span style="font-size:14px;font-weight:600;color:#EDE8E3">GPS acquiring</span>
+                </div>
+                <span style="font-size:13px;color:#C87830;font-weight:600">±12m</span>
+              </div>
+              <div style="height:5px;background:#332F2A;border-radius:3px;overflow:hidden;margin-bottom:8px">
+                <div style="height:100%;width:72%;background:linear-gradient(90deg,#C87830,#D08848);border-radius:3px"></div>
+              </div>
+              <div style="font-size:12px;color:#9A8F88">Method: GPS satellite · Improving…</div>
+            </div>
+            <div style="background:rgba(200,120,48,.12);border:1px solid rgba(200,120,48,.2);border-radius:10px;padding:10px 14px;display:flex;gap:8px;margin-bottom:22px">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;margin-top:1px"><path d="M8 1.5L14.5 13H1.5L8 1.5Z" stroke="#C87830" stroke-width="1.2"/><line x1="8" y1="6" x2="8" y2="9.5" stroke="#C87830" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11.5" r=".7" fill="#C87830"/></svg>
+              <span style="font-size:12px;color:#BF7828;line-height:1.55">Accuracy below 10m recommended. You can still start the visit.</span>
+            </div>
+          </div>
+          <div style="padding:12px 18px 16px;display:flex;flex-direction:column;gap:8px;flex-shrink:0">
+            <button onClick="{{ goToVisitCapture }}" style="width:100%;padding:15px;border-radius:14px;background:#B87040;border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(184,112,64,.3)">Start Visit Now</button>
+            <button onClick="{{ goToProjectDetail }}" style="width:100%;padding:13px;border-radius:14px;background:transparent;border:1.5px solid rgba(255,255,255,.08);color:#9A8F88;font-size:14px;cursor:pointer;font-family:inherit">Cancel</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ CAPTURE A — TABBED ═══ -->
+      <sc-if value="{{ showCaptureAScreen }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fadeIn .3s ease;background:#1E1B18">
+          <div style="padding:12px 14px 0;flex-shrink:0;background:#fff;border-bottom:1px solid rgba(255,255,255,.07)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div><div style="font-size:14px;font-weight:700;color:#EDE8E3">Site Inspection</div><div style="font-size:10px;color:#9A8F88">Nandgram School WASH</div></div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#B87040">{{ visitTimerDisplay }}</span>
+                <button onClick="{{ goToReport }}" style="background:rgba(212,64,64,.12);border:1px solid rgba(212,64,64,.2);color:#D44040;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;padding:5px 11px;border-radius:20px">End</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(184,112,64,.12);border:1px solid rgba(184,112,64,.2);padding:4px 9px;border-radius:20px">
+                <div style="width:5px;height:5px;border-radius:50%;background:#D08848;animation:pulse 2s infinite"></div>
+                <span style="font-size:10px;color:#B87040;font-weight:600">GPS ±8m</span>
+              </div>
+              <div style="display:flex;background:#2A2420;border-radius:20px;padding:2px">
+                <button onClick="{{ setCaptureA }}" style="padding:3px 10px;border-radius:18px;background:#B87040;border:none;color:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">TAB</button>
+                <button onClick="{{ setCaptureB }}" style="padding:3px 10px;border-radius:18px;background:transparent;border:none;color:#5C5550;font-size:10px;cursor:pointer;font-family:inherit">SCROLL</button>
+              </div>
+            </div>
+            <div style="display:flex;border-bottom:1px solid rgba(255,255,255,.06);margin:0 -14px;padding:0 14px">
+              <button onClick="{{ setTabPhotos }}" style="flex:1;padding:9px 2px;background:none;border:none;border-bottom:{{ tabPhotosLine }};margin-bottom:-1px;color:{{ tabPhotosColor }};font-size:11px;font-weight:{{ tabPhotosW }};cursor:pointer;font-family:inherit">Photos</button>
+              <button onClick="{{ setTabVoice }}" style="flex:1;padding:9px 2px;background:none;border:none;border-bottom:{{ tabVoiceLine }};margin-bottom:-1px;color:{{ tabVoiceColor }};font-size:11px;font-weight:{{ tabVoiceW }};cursor:pointer;font-family:inherit">Voice</button>
+              <button onClick="{{ setTabChecklist }}" style="flex:1;padding:9px 2px;background:none;border:none;border-bottom:{{ tabChecklistLine }};margin-bottom:-1px;color:{{ tabChecklistColor }};font-size:11px;font-weight:{{ tabChecklistW }};cursor:pointer;font-family:inherit">Checklist</button>
+              <button onClick="{{ setTabNotes }}" style="flex:1;padding:9px 2px;background:none;border:none;border-bottom:{{ tabNotesLine }};margin-bottom:-1px;color:{{ tabNotesColor }};font-size:11px;font-weight:{{ tabNotesW }};cursor:pointer;font-family:inherit">Notes</button>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:14px">
+            <!-- Photos -->
+            <div style="display:{{ tabPhotosDisplay }}">
+              <button style="width:100%;padding:12px;border-radius:11px;background:rgba(184,112,64,.12);border:1.5px dashed rgba(184,112,64,.3);color:#B87040;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px">
+                <svg width="15" height="14" viewBox="0 0 15 14" fill="none"><rect x="1" y="2" width="13" height="10" rx="1.5" stroke="#B87040" stroke-width="1.2"/><circle cx="7.5" cy="7" r="2.2" stroke="#B87040" stroke-width="1.2"/><path d="M5 2L6 0.5h3L10 2" stroke="#B87040" stroke-width="1.2" stroke-linecap="round"/></svg>
+                Take Photo
+              </button>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div style="border-radius:10px;overflow:hidden;position:relative;aspect-ratio:1;background:#2E2A26"><div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#2E2A26 0,#2E2A26 8px,#272320 8px,#272320 16px)"></div><div style="position:absolute;top:5px;right:5px;background:#B87040;border-radius:20px;padding:2px 6px;font-size:7px;font-weight:700;color:#fff">GPS</div><div style="position:absolute;bottom:0;left:0;right:0;padding:4px 6px;background:linear-gradient(transparent,rgba(0,0,0,.5))"><div style="font-size:7px;color:#fff;font-family:'JetBrains Mono',monospace;line-height:1.5">23.123°N · 73.567°E<br>10:32 AM · ±8m</div></div></div>
+                <div style="border-radius:10px;overflow:hidden;position:relative;aspect-ratio:1;background:#2E2A26"><div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#2E2A26 0,#2E2A26 8px,#272320 8px,#272320 16px)"></div><div style="position:absolute;top:5px;right:5px;background:#B87040;border-radius:20px;padding:2px 6px;font-size:7px;font-weight:700;color:#fff">GPS</div><div style="position:absolute;bottom:0;left:0;right:0;padding:4px 6px;background:linear-gradient(transparent,rgba(0,0,0,.5))"><div style="font-size:7px;color:#fff;font-family:'JetBrains Mono',monospace;line-height:1.5">23.123°N · 73.567°E<br>10:38 AM · ±9m</div></div></div>
+                <div style="border-radius:10px;border:1.5px dashed rgba(255,255,255,.08);aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#fff"><span style="font-size:22px;color:#3A3028">+</span></div>
+                <div style="border-radius:10px;border:1.5px dashed rgba(255,255,255,.08);aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#fff"><span style="font-size:22px;color:#3A3028">+</span></div>
+              </div>
+              <div style="margin-top:10px;text-align:center;font-size:10px;color:#5C5550">2 photos · All geo-verified</div>
+            </div>
+            <!-- Voice -->
+            <div style="display:{{ tabVoiceDisplay }};flex-direction:column;align-items:center">
+              <div style="margin:18px 0 14px;display:flex;flex-direction:column;align-items:center;gap:10px">
+                <button onMouseDown="{{ startRecord }}" onMouseUp="{{ stopRecord }}" onTouchStart="{{ startRecord }}" onTouchEnd="{{ stopRecord }}" style="width:88px;height:88px;border-radius:50%;background:{{ recBg }};border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:{{ recShadow }};transition:all .15s ease">
+                  <svg width="26" height="34" viewBox="0 0 26 34" fill="none"><rect x="5" y="2" width="16" height="20" rx="8" fill="rgba(255,255,255,.3)"/><path d="M2 16 Q2 28 13 28 Q24 28 24 16" stroke="rgba(255,255,255,.4)" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="13" y1="28" x2="13" y2="34" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+                <div style="font-size:12px;color:{{ recLabelColor }};font-weight:{{ recLabelWeight }}">{{ recLabel }}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:3px;height:42px;margin-bottom:16px;width:100%;justify-content:center">
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv1 1.1s 0.00s infinite ease-in-out"></div>
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv3 1.1s 0.07s infinite ease-in-out"></div>
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv2 1.1s 0.14s infinite ease-in-out"></div>
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv4 1.1s 0.21s infinite ease-in-out"></div>
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv1 1.1s 0.28s infinite ease-in-out"></div>
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv3 1.1s 0.35s infinite ease-in-out"></div>
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv2 1.1s 0.42s infinite ease-in-out"></div>
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv4 1.1s 0.49s infinite ease-in-out"></div>
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv1 1.1s 0.56s infinite ease-in-out"></div>
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv3 1.1s 0.63s infinite ease-in-out"></div>
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv2 1.1s 0.70s infinite ease-in-out"></div>
+                <div style="width:3px;border-radius:2px;background:#D08848;opacity:{{ waveOp }};animation:wv4 1.1s 0.77s infinite ease-in-out"></div>
+              </div>
+              <div style="width:100%;background:#252220;border-radius:12px;padding:13px;border:1px solid rgba(255,255,255,.07);box-shadow:0 1px 4px rgba(255,255,255,.05)">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <span style="font-size:10px;color:#9A8F88;text-transform:uppercase;letter-spacing:.5px">Transcript</span>
+                  <div style="display:flex;align-items:center;gap:4px;background:rgba(184,112,64,.12);padding:2px 7px;border-radius:20px"><div style="width:4px;height:4px;border-radius:50%;background:#D08848"></div><span style="font-size:9px;color:#B87040">Whisper</span></div>
+                </div>
+                <div style="font-size:12px;color:#EDE8E3;line-height:1.65">Workers confirmed 3 of 5 toilet blocks functional. Drainage issue near block B — sewage overflow visible. Contractor present, acknowledged the problem.</div>
+                <button style="margin-top:8px;background:none;border:none;color:#B87040;font-size:11px;cursor:pointer;font-family:inherit;padding:0">Edit transcript →</button>
+              </div>
+              <!-- Saved clips list -->
+              <sc-if value="{{ hasClips }}" hint-placeholder-val="{{ false }}">
+                <div style="width:100%;margin-top:14px">
+                  <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">{{ clipCountLabel }}</div>
+                  <!-- Clip 0 -->
+                  <div style="background:#2A2420;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(255,255,255,.06)">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                      <div style="width:32px;height:32px;border-radius:50%;background:rgba(184,112,64,.15);border:1px solid rgba(184,112,64,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <svg width="12" height="16" viewBox="0 0 12 16" fill="none"><rect x="2" y="1" width="8" height="10" rx="4" stroke="#B87040" stroke-width="1.2"/><path d="M1 8 Q1 13 6 13 Q11 13 11 8" stroke="#B87040" stroke-width="1.2" fill="none" stroke-linecap="round"/><line x1="6" y1="13" x2="6" y2="16" stroke="#B87040" stroke-width="1.2" stroke-linecap="round"/></svg>
+                      </div>
+                      <div style="flex:1">
+                        <div style="font-size:12px;font-weight:600;color:#EDE8E3">Clip 1</div>
+                        <div style="font-size:10px;color:#5C5550;margin-top:1px">{{ clip0time }} · {{ clip0dur }}</div>
+                      </div>
+                      <div style="background:rgba(184,112,64,.12);padding:3px 8px;border-radius:20px;font-size:9px;color:#B87040;font-weight:600">SAVED</div>
+                    </div>
+                    <div style="font-size:11px;color:#9A8F88;line-height:1.6;border-top:1px solid rgba(255,255,255,.05);padding-top:8px">{{ clip0text }}</div>
+                  </div>
+                  <!-- Clip 1 -->
+                  <sc-if value="{{ clip1 }}" hint-placeholder-val="{{ false }}">
+                    <div style="background:#2A2420;border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,.06)">
+                      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                        <div style="width:32px;height:32px;border-radius:50%;background:rgba(184,112,64,.15);border:1px solid rgba(184,112,64,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                          <svg width="12" height="16" viewBox="0 0 12 16" fill="none"><rect x="2" y="1" width="8" height="10" rx="4" stroke="#B87040" stroke-width="1.2"/><path d="M1 8 Q1 13 6 13 Q11 13 11 8" stroke="#B87040" stroke-width="1.2" fill="none" stroke-linecap="round"/><line x1="6" y1="13" x2="6" y2="16" stroke="#B87040" stroke-width="1.2" stroke-linecap="round"/></svg>
+                        </div>
+                        <div style="flex:1">
+                          <div style="font-size:12px;font-weight:600;color:#EDE8E3">Clip 2</div>
+                          <div style="font-size:10px;color:#5C5550;margin-top:1px">{{ clip1time }} · {{ clip1dur }}</div>
+                        </div>
+                        <div style="background:rgba(184,112,64,.12);padding:3px 8px;border-radius:20px;font-size:9px;color:#B87040;font-weight:600">SAVED</div>
+                      </div>
+                      <div style="font-size:11px;color:#9A8F88;line-height:1.6;border-top:1px solid rgba(255,255,255,.05);padding-top:8px">{{ clip1text }}</div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+            <!-- Checklist -->
+            <div style="display:{{ tabChecklistDisplay }};flex-direction:column;gap:8px">
+              <div style="font-size:11px;color:#9A8F88;margin-bottom:4px">3 of 5 items completed</div>
+              <div style="background:#252220;border-radius:11px;padding:12px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)"><div style="width:18px;height:18px;border-radius:5px;background:#D08848;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L4 7L9 1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="font-size:12px;color:#9A8F88">Toilet blocks counted and photographed</span></div>
+              <div style="background:#252220;border-radius:11px;padding:12px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)"><div style="width:18px;height:18px;border-radius:5px;background:#D08848;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L4 7L9 1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="font-size:12px;color:#9A8F88">Water supply status confirmed</span></div>
+              <div style="background:#252220;border-radius:11px;padding:12px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)"><div style="width:18px;height:18px;border-radius:5px;background:#D08848;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L4 7L9 1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="font-size:12px;color:#9A8F88">Beneficiary count verified</span></div>
+              <div style="background:#252220;border-radius:11px;padding:12px;display:flex;align-items:center;gap:10px;border:1.5px solid rgba(255,255,255,.07)"><div style="width:18px;height:18px;border-radius:5px;border:1.5px solid #3A3028;flex-shrink:0"></div><span style="font-size:12px;color:#EDE8E3">Drainage issue documented</span></div>
+              <div style="background:#252220;border-radius:11px;padding:12px;display:flex;align-items:center;gap:10px;border:1.5px solid rgba(255,255,255,.07)"><div style="width:18px;height:18px;border-radius:5px;border:1.5px solid #3A3028;flex-shrink:0"></div><span style="font-size:12px;color:#EDE8E3">Contractor sign-off obtained</span></div>
+            </div>
+            <!-- Notes -->
+            <div style="display:{{ tabNotesDisplay }}">
+              <div style="background:#252220;border-radius:12px;padding:13px;min-height:150px;border:1.5px solid rgba(255,255,255,.07);font-size:12px;color:#9A8F88;line-height:1.7">Spoke to head teacher Mrs. Geeta Patil. Maintenance issue ongoing 2+ months. District water authority unresponsive.<br><br>Recommend escalation flag in generated report.</div>
+              <div style="margin-top:8px;text-align:right;font-size:10px;color:#5C5550">Auto-saved 10:42 AM</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ CAPTURE B — SCROLL ═══ -->
+      <sc-if value="{{ showCaptureBScreen }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fadeIn .3s ease;background:#1E1B18">
+          <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;background:#fff">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div><div style="font-size:14px;font-weight:700;color:#EDE8E3">Site Inspection</div><div style="font-size:10px;color:#9A8F88">Nandgram School WASH</div></div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#B87040">{{ visitTimerDisplay }}</span>
+                <button onClick="{{ goToReport }}" style="background:rgba(212,64,64,.12);border:1px solid rgba(212,64,64,.2);color:#D44040;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;padding:5px 11px;border-radius:20px">End</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(184,112,64,.12);border:1px solid rgba(184,112,64,.2);padding:4px 9px;border-radius:20px">
+                <div style="width:5px;height:5px;border-radius:50%;background:#D08848;animation:pulse 2s infinite"></div>
+                <span style="font-size:10px;color:#B87040;font-weight:600">GPS ±8m</span>
+              </div>
+              <div style="display:flex;background:#2A2420;border-radius:20px;padding:2px">
+                <button onClick="{{ setCaptureA }}" style="padding:3px 10px;border-radius:18px;background:transparent;border:none;color:#5C5550;font-size:10px;cursor:pointer;font-family:inherit">TAB</button>
+                <button onClick="{{ setCaptureB }}" style="padding:3px 10px;border-radius:18px;background:#B87040;border:none;color:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">SCROLL</button>
+              </div>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:14px;padding-bottom:76px">
+            <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:1px;margin-bottom:9px">Photos · 2 captured</div>
+            <div style="display:flex;gap:8px;margin-bottom:18px">
+              <div style="width:76px;height:76px;border-radius:10px;overflow:hidden;position:relative;background:#2E2A26;flex-shrink:0"><div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#2E2A26 0,#2E2A26 8px,#272320 8px,#272320 16px)"></div><div style="position:absolute;top:4px;right:4px;background:#B87040;border-radius:20px;padding:2px 5px;font-size:7px;font-weight:700;color:#fff">GPS</div></div>
+              <div style="width:76px;height:76px;border-radius:10px;overflow:hidden;position:relative;background:#2E2A26;flex-shrink:0"><div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#2E2A26 0,#2E2A26 8px,#272320 8px,#272320 16px)"></div><div style="position:absolute;top:4px;right:4px;background:#B87040;border-radius:20px;padding:2px 5px;font-size:7px;font-weight:700;color:#fff">GPS</div></div>
+              <div style="width:76px;height:76px;border-radius:10px;border:1.5px dashed rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff"><span style="font-size:20px;color:#3A3028">+</span></div>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,.06);margin-bottom:16px"></div>
+            <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:1px;margin-bottom:9px">Voice Notes</div>
+            <div style="background:#252220;border-radius:13px;padding:14px;margin-bottom:18px;box-shadow:0 1px 4px rgba(255,255,255,.05)">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <button onMouseDown="{{ startRecord }}" onMouseUp="{{ stopRecord }}" onTouchStart="{{ startRecord }}" onTouchEnd="{{ stopRecord }}" style="width:48px;height:48px;border-radius:50%;background:{{ recBgSmall }};border:none;cursor:pointer;flex-shrink:0;box-shadow:{{ recShadowSmall }};transition:all .15s;display:flex;align-items:center;justify-content:center">
+                  <div style="width:16px;height:16px;border-radius:{{ recInnerR }};background:rgba(255,255,255,.35);transition:border-radius .15s"></div>
+                </button>
+                <div><div style="font-size:13px;font-weight:600;color:{{ recColorSmall }}">{{ recLabelSmall }}</div><div style="font-size:10px;color:#5C5550;margin-top:2px">1 clip · 0:43</div></div>
+              </div>
+              <div style="font-size:12px;color:#9A8F88;line-height:1.65;border-top:1px solid rgba(255,255,255,.06);padding-top:10px">Workers confirmed 3 of 5 toilet blocks functional… <span style="color:#B87040;cursor:pointer">more</span></div>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,.06);margin-bottom:16px"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+              <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:1px">Checklist</div>
+              <span style="font-size:11px;color:#B87040;font-weight:600">3 / 5</span>
+            </div>
+            <div style="background:#252220;border-radius:13px;padding:12px;margin-bottom:18px;display:flex;flex-direction:column;gap:9px;box-shadow:0 1px 4px rgba(255,255,255,.05)">
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:17px;height:17px;border-radius:5px;background:#D08848;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="font-size:11px;color:#9A8F88">Toilet blocks counted</span></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:17px;height:17px;border-radius:5px;background:#D08848;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="font-size:11px;color:#9A8F88">Water supply confirmed</span></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:17px;height:17px;border-radius:5px;background:#D08848;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="font-size:11px;color:#9A8F88">Beneficiary count verified</span></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:17px;height:17px;border-radius:5px;border:1.5px solid #3A3028;flex-shrink:0"></div><span style="font-size:11px;color:#EDE8E3">Drainage documented</span></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:17px;height:17px;border-radius:5px;border:1.5px solid #3A3028;flex-shrink:0"></div><span style="font-size:11px;color:#EDE8E3">Contractor sign-off</span></div>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,.06);margin-bottom:16px"></div>
+            <div style="font-size:10px;font-weight:600;color:#5C5550;text-transform:uppercase;letter-spacing:1px;margin-bottom:9px">Field Notes</div>
+            <div style="background:#252220;border-radius:13px;padding:13px;min-height:90px;font-size:12px;color:#9A8F88;line-height:1.7;box-shadow:0 1px 4px rgba(255,255,255,.05)">Spoke to Mrs. Geeta Patil. Maintenance issue 2+ months. Recommend escalation.</div>
+          </div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 14px 14px;background:linear-gradient(transparent,#1E1B18 32%)">
+            <button onClick="{{ goToReport }}" style="width:100%;padding:14px;border-radius:14px;background:#B87040;border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(184,112,64,.3)">End Visit &amp; Generate Report</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ REPORT PREVIEW ═══ -->
+      <sc-if value="{{ showReport }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fadeIn .3s ease;background:#1E1B18">
+          <div style="padding:14px 18px 0;display:flex;align-items:center;gap:12px;flex-shrink:0;margin-bottom:12px">
+            <button onClick="{{ goToDashboard }}" style="background:none;border:none;color:#9A8F88;cursor:pointer;font-size:20px;padding:2px 0;font-family:inherit;line-height:1">&#8592;</button>
+            <div style="flex:1"><div style="font-size:15px;font-weight:700;color:#EDE8E3">Report Ready</div><div style="font-size:11px;color:#B87040;margin-top:2px">Generated on-device · Encrypted</div></div>
+            <button style="background:none;border:1.5px solid rgba(184,112,64,.3);color:#B87040;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;padding:6px 12px;border-radius:20px">Share</button>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:0 16px 20px">
+            <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(255,255,255,.08)">
+              <div style="background:#B87040;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13px;font-weight:700;color:#fff">Site Visit Report</div><div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:1px">Tata Trusts CSR · Verilo v1.0</div></div>
+                <span style="font-size:15px;font-weight:800;color:#D4956A;letter-spacing:-.5px">verilo</span>
+              </div>
+              <div style="padding:14px 18px;border-bottom:1px solid #F0F4F0">
+                <div style="font-size:8px;font-weight:700;color:#5C5550;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Project Details</div>
+                <table style="width:100%;border-collapse:collapse">
+                  <tr><td style="padding:2px 0;font-size:10px;color:#6B7280;width:38%">Project</td><td style="padding:2px 0;font-size:10px;font-weight:600;color:#111827">Nandgram School WASH</td></tr>
+                  <tr><td style="padding:2px 0;font-size:10px;color:#9A8F88">Process</td><td style="padding:2px 0;font-size:10px;font-weight:600;color:#111827">Q2 Monitoring</td></tr>
+                  <tr><td style="padding:2px 0;font-size:10px;color:#9A8F88">Location</td><td style="padding:2px 0;font-size:10px;font-weight:600;color:#111827">Raigad, Maharashtra</td></tr>
+                  <tr><td style="padding:2px 0;font-size:10px;color:#9A8F88">Officer</td><td style="padding:2px 0;font-size:10px;font-weight:600;color:#111827">Riya Desai</td></tr>
+                </table>
+              </div>
+              <div style="padding:14px 18px;border-bottom:1px solid #F0F4F0">
+                <div style="font-size:8px;font-weight:700;color:#5C5550;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Visit Information</div>
+                <table style="width:100%;border-collapse:collapse">
+                  <tr><td style="padding:2px 0;font-size:10px;color:#6B7280;width:38%">Entry</td><td style="padding:2px 0;font-size:10px;font-weight:600;color:#111827">10:21 AM · 14 Jun 2025</td></tr>
+                  <tr><td style="padding:2px 0;font-size:10px;color:#9A8F88">Duration</td><td style="padding:2px 0;font-size:10px;font-weight:600;color:#111827">43 minutes</td></tr>
+                  <tr><td style="padding:2px 0;font-size:10px;color:#9A8F88">GPS</td><td style="padding:2px 0;font-size:10px;font-weight:600;color:#111827">23.1234°N, 73.5678°E</td></tr>
+                  <tr><td style="padding:2px 0;font-size:10px;color:#9A8F88">Accuracy</td><td style="padding:2px 0;font-size:10px;font-weight:600;color:#111827">±8m · GPS satellite</td></tr>
+                </table>
+              </div>
+              <div style="padding:14px 18px;border-bottom:1px solid #F0F4F0">
+                <div style="font-size:8px;font-weight:700;color:#5C5550;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Geo-Verified Photos (2)</div>
+                <div style="display:flex;gap:8px">
+                  <div style="flex:1;aspect-ratio:4/3;border-radius:6px;overflow:hidden;position:relative;background:#2E2A26"><div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#2E2A26 0,#2E2A26 6px,#272320 6px,#272320 12px)"></div><div style="position:absolute;bottom:0;left:0;right:0;padding:3px 5px;background:rgba(0,0,0,.45)"><div style="font-size:7px;color:#fff;font-family:'JetBrains Mono',monospace">10:32AM · ±8m</div></div></div>
+                  <div style="flex:1;aspect-ratio:4/3;border-radius:6px;overflow:hidden;position:relative;background:#2E2A26"><div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#2E2A26 0,#2E2A26 6px,#272320 6px,#272320 12px)"></div><div style="position:absolute;bottom:0;left:0;right:0;padding:3px 5px;background:rgba(0,0,0,.45)"><div style="font-size:7px;color:#fff;font-family:'JetBrains Mono',monospace">10:38AM · ±9m</div></div></div>
+                </div>
+              </div>
+              <div style="padding:14px 18px;border-bottom:1px solid #F0F4F0">
+                <div style="font-size:8px;font-weight:700;color:#5C5550;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Field Notes</div>
+                <div style="font-size:10px;color:#374151;line-height:1.65">Workers confirmed 3 of 5 toilet blocks functional. Drainage issue near block B. Contractor acknowledged. Head teacher Mrs. Geeta Patil confirmed 2+ month maintenance lapse.</div>
+              </div>
+              <div style="padding:14px 18px;background:#1E1B18">
+                <div style="font-size:8px;font-weight:700;color:#5C5550;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Integrity Verification</div>
+                <table style="width:100%;border-collapse:collapse">
+                  <tr><td style="padding:2px 0;font-size:9px;color:#6B7280;width:36%">SHA-256</td><td style="padding:2px 0;font-size:9px;font-weight:500;color:#111827;font-family:'JetBrains Mono',monospace;word-break:break-all">a3f7c291e82b…d4f9</td></tr>
+                  <tr><td style="padding:2px 0;font-size:9px;color:#9A8F88">Signed by</td><td style="padding:2px 0;font-size:9px;font-weight:500;color:#111827">Riya Desai · Android Keystore</td></tr>
+                  <tr><td style="padding:2px 0;font-size:9px;color:#9A8F88">Engine</td><td style="padding:2px 0;font-size:9px;font-weight:500;color:#111827">Whisper Large V3 Turbo</td></tr>
+                </table>
+              </div>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:8px">
+              <button style="flex:1;padding:14px;border-radius:12px;background:#B87040;border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(184,112,64,.3)">Download PDF</button>
+              <button onClick="{{ goToDashboard }}" style="padding:14px 16px;border-radius:12px;background:#fff;border:1.5px solid rgba(255,255,255,.07);color:#9A8F88;font-size:14px;cursor:pointer;font-family:inherit">Home</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </x-import>
+
+  <!-- Screen navigator -->
+  <div style="display:flex;flex-wrap:wrap;gap:6px;max-width:440px;justify-content:center">
+    <button onClick="{{ jumpSplash }}" style="padding:5px 12px;border-radius:20px;background:#1C1814;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.45);font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">Splash</button>
+    <button onClick="{{ jumpOnboarding }}" style="padding:5px 12px;border-radius:20px;background:#1C1814;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">Onboarding</button>
+    <button onClick="{{ jumpDownload }}" style="padding:5px 12px;border-radius:20px;background:#1C1814;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">Model DL</button>
+    <button onClick="{{ jumpLogin }}" style="padding:5px 12px;border-radius:20px;background:#1C1814;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">Login</button>
+    <button onClick="{{ jumpDashboard }}" style="padding:5px 12px;border-radius:20px;background:#1C1814;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">Dashboard</button>
+    <button onClick="{{ jumpProject }}" style="padding:5px 12px;border-radius:20px;background:#1C1814;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">Project</button>
+    <button onClick="{{ jumpCreate }}" style="padding:5px 12px;border-radius:20px;background:rgba(184,112,64,.15);border:1px solid rgba(184,112,64,.3);color:#D4956A;font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">+ Create</button>
+    <button onClick="{{ jumpParams }}" style="padding:5px 12px;border-radius:20px;background:#1C1814;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">Params</button>
+    <button onClick="{{ jumpVisitSetup }}" style="padding:5px 12px;border-radius:20px;background:#1C1814;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">GPS Lock</button>
+    <button onClick="{{ jumpCaptureA }}" style="padding:5px 12px;border-radius:20px;background:rgba(208,136,72,.15);border:1px solid rgba(208,136,72,.3);color:#D4956A;font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">Capture A</button>
+    <button onClick="{{ jumpCaptureB }}" style="padding:5px 12px;border-radius:20px;background:rgba(208,136,72,.15);border:1px solid rgba(208,136,72,.3);color:#D4956A;font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">Capture B</button>
+    <button onClick="{{ jumpReport }}" style="padding:5px 12px;border-radius:20px;background:#1C1814;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:'Space Grotesk',system-ui">Report</button>
+  </div>
+  <div style="font-size:10px;color:#2A4028;padding-bottom:4px;letter-spacing:.5px">VERILO · Dev Handoff Reference · 10 Screens</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'splash',
+    onboardingPage: 0,
+    captureVariant: 'A',
+    activeTab: 'photos',
+    isRecording: false,
+    recStartTime: 0,
+    savedClips: [],
+    visitTimer: 0,
+    whisperProgress: 0,
+    gemmaProgress: 0,
+    showOffline: false,
+    dashView: 'list',
+    createStep: 0,
+  };
+
+  componentDidMount() {
+    this._splashTimer = setTimeout(() => {
+      if (this.state.screen === 'splash') this.setState({ screen: 'onboarding' });
+    }, 2500);
+    this._visitInterval = setInterval(() => {
+      if (this.state.screen === 'visit_capture') {
+        this.setState(s => ({ visitTimer: s.visitTimer + 1 }));
+      }
+    }, 1000);
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._splashTimer);
+    clearInterval(this._visitInterval);
+    clearInterval(this._dlInterval);
+  }
+
+  _startDownload() {
+    clearInterval(this._dlInterval);
+    this._dlInterval = setInterval(() => {
+      this.setState(s => {
+        const w = Math.min(100, s.whisperProgress + 1.1 + Math.random() * 1.6);
+        const g = Math.min(100, s.gemmaProgress + 0.75 + Math.random() * 1.2);
+        if (w >= 100 && g >= 100) {
+          clearInterval(this._dlInterval);
+          setTimeout(() => this.setState({ screen: 'login' }), 900);
+        }
+        return { whisperProgress: w, gemmaProgress: g };
+      });
+    }, 130);
+  }
+
+  _fmt(s) {
+    const m = Math.floor(s / 60), sec = s % 60;
+    return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+  }
+
+  renderVals() {
+    const { screen, onboardingPage: obP, captureVariant, activeTab: tab, isRecording: rec,
+            visitTimer, whisperProgress, gemmaProgress, showOffline, dashView, savedClips } = this.state;
+
+    const teal = '#B87040';
+    const tealAction = '#D08848';
+
+    return {
+      trueVal: true,
+      falseVal: false,
+
+      // Screen flags
+      showSplash: screen === 'splash',
+      showOnboarding: screen === 'onboarding',
+      showModelDownload: screen === 'model_download',
+      showLogin: screen === 'login',
+      showDashboard: screen === 'dashboard',
+      showCreateProject: screen === 'create_project',
+      showProjectDetail: screen === 'project_detail',
+      showProjectParams: screen === 'project_params',
+      showVisitSetup: screen === 'visit_setup',
+      showCaptureAScreen: screen === 'visit_capture' && captureVariant === 'A',
+      showCaptureBScreen: screen === 'visit_capture' && captureVariant === 'B',
+      showReport: screen === 'report',
+
+      // Onboarding
+      ob0Display: obP === 0 ? 'flex' : 'none',
+      ob1Display: obP === 1 ? 'flex' : 'none',
+      ob2Display: obP === 2 ? 'flex' : 'none',
+      ob0DotW: obP === 0 ? '22px' : '6px',
+      ob1DotW: obP === 1 ? '22px' : '6px',
+      ob2DotW: obP === 2 ? '22px' : '6px',
+      ob0DotC: obP === 0 ? teal : 'rgba(255,255,255,.1)',
+      ob1DotC: obP === 1 ? teal : 'rgba(255,255,255,.1)',
+      ob2DotC: obP === 2 ? teal : 'rgba(255,255,255,.1)',
+      nextBtnLabel: obP === 2 ? 'Get Started →' : 'Next →',
+
+      // Download
+      whisperWidth: whisperProgress.toFixed(1) + '%',
+      gemmaWidth: gemmaProgress.toFixed(1) + '%',
+      whisperPct: Math.round(whisperProgress) + '%',
+      gemmaPct: Math.round(gemmaProgress) + '%',
+      whisperMB: Math.round(whisperProgress * 6),
+      gemmaMB: Math.round(gemmaProgress * 7),
+
+      // Dashboard
+      offlineBannerDisplay: showOffline ? 'flex' : 'none',
+      dashListDisplay: dashView === 'list' ? 'flex' : 'none',
+      dashMapDisplay: dashView === 'map' ? 'flex' : 'none',
+      dashBtnListBg: dashView === 'list' ? teal : 'transparent',
+      dashBtnMapBg: dashView === 'map' ? teal : 'transparent',
+      dashBtnListColor: dashView === 'list' ? '#fff' : '#9A8F88',
+      dashBtnMapColor: dashView === 'map' ? '#fff' : '#9A8F88',
+
+      // Tabs
+      tabPhotosDisplay: tab === 'photos' ? 'block' : 'none',
+      tabVoiceDisplay: tab === 'voice' ? 'flex' : 'none',
+      tabChecklistDisplay: tab === 'checklist' ? 'flex' : 'none',
+      tabNotesDisplay: tab === 'notes' ? 'block' : 'none',
+      tabPhotosColor: tab === 'photos' ? teal : '#5C5550',
+      tabVoiceColor: tab === 'voice' ? teal : '#5C5550',
+      tabChecklistColor: tab === 'checklist' ? teal : '#5C5550',
+      tabNotesColor: tab === 'notes' ? teal : '#5C5550',
+      tabPhotosW: tab === 'photos' ? '600' : '400',
+      tabVoiceW: tab === 'voice' ? '600' : '400',
+      tabChecklistW: tab === 'checklist' ? '600' : '400',
+      tabNotesW: tab === 'notes' ? '600' : '400',
+      tabPhotosLine: tab === 'photos' ? '2px solid ' + teal : '2px solid transparent',
+      tabVoiceLine: tab === 'voice' ? '2px solid ' + teal : '2px solid transparent',
+      tabChecklistLine: tab === 'checklist' ? '2px solid ' + teal : '2px solid transparent',
+      tabNotesLine: tab === 'notes' ? '2px solid ' + teal : '2px solid transparent',
+
+      // Timer
+      visitTimerDisplay: this._fmt(visitTimer),
+
+      // Recording
+      isRecording: rec,
+      recBg: rec ? 'radial-gradient(circle,#D44040,#A83030)' : 'radial-gradient(circle,#D08848,#B87040)',
+      recShadow: rec ? '0 0 0 16px rgba(212,64,64,.15),0 8px 28px rgba(212,64,64,.4)' : '0 0 0 0 transparent,0 8px 22px rgba(208,136,72,.4)',
+      recLabel: rec ? '● Recording…' : 'Hold to record',
+      recLabelColor: rec ? '#D44040' : '#9A8F88',
+      recLabelWeight: rec ? '600' : '400',
+      waveOp: rec ? '1' : '0.25',
+      recBgSmall: rec ? '#D44040' : tealAction,
+      recShadowSmall: rec ? '0 0 0 8px rgba(212,64,64,.15)' : '0 4px 14px rgba(208,136,72,.35)',
+      recInnerR: rec ? '3px' : '50%',
+      recLabelSmall: rec ? '● Recording…' : 'Hold to record',
+      recColorSmall: rec ? '#D44040' : '#EDE8E3',
+
+      // Navigation
+      goToOnboarding: () => this.setState({ screen: 'onboarding', onboardingPage: 0 }),
+      goToModelDownload: () => { this.setState({ screen: 'model_download', whisperProgress: 0, gemmaProgress: 0 }); this._startDownload(); },
+      goToLogin: () => this.setState({ screen: 'login' }),
+      goToDashboard: () => this.setState({ screen: 'dashboard' }),
+      goToCreateProject: () => this.setState({ screen: 'create_project', createStep: 0 }),
+      goToProjectDetail: () => this.setState({ screen: 'project_detail' }),
+      goToProjectParams: () => this.setState({ screen: 'project_params' }),
+      goToVisitSetup: () => this.setState({ screen: 'visit_setup' }),
+      goToVisitCapture: () => this.setState({ screen: 'visit_capture', captureVariant: 'A', activeTab: 'photos', visitTimer: 0 }),
+      goToReport: () => this.setState({ screen: 'report' }),
+
+      nextPage: () => {
+        const p = this.state.onboardingPage;
+        if (p < 2) { this.setState({ onboardingPage: p + 1 }); }
+        else { this.setState({ screen: 'model_download', whisperProgress: 0, gemmaProgress: 0 }); this._startDownload(); }
+      },
+
+      setTabPhotos: () => this.setState({ activeTab: 'photos' }),
+      setTabVoice: () => this.setState({ activeTab: 'voice' }),
+      setTabChecklist: () => this.setState({ activeTab: 'checklist' }),
+      setTabNotes: () => this.setState({ activeTab: 'notes' }),
+      setCaptureA: () => this.setState({ captureVariant: 'A' }),
+      setCaptureB: () => this.setState({ captureVariant: 'B' }),
+      startRecord: () => this.setState({ isRecording: true, recStartTime: Date.now() }),
+      stopRecord: () => {
+        const dur = Math.max(1, Math.round((Date.now() - (this.state.recStartTime || Date.now())) / 1000));
+        const t = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        const clips = ['Workers confirmed 3 of 5 toilet blocks functional. Drainage issue near block B — sewage overflow visible.','Spoke to head teacher Mrs. Geeta Patil. Maintenance issue 2+ months. Recommend escalation.'];
+        const clip = { id: Date.now(), time: t, dur, transcript: clips[this.state.savedClips.length % 2] };
+        this.setState(s => ({ isRecording: false, savedClips: [...s.savedClips, clip] }));
+      },
+      toggleOffline: () => this.setState(s => ({ showOffline: !s.showOffline })),
+      setDashList: () => this.setState({ dashView: 'list' }),
+      setDashMap: () => this.setState({ dashView: 'map' }),
+
+      // Jump nav
+      jumpSplash: () => this.setState({ screen: 'splash' }),
+      jumpOnboarding: () => this.setState({ screen: 'onboarding', onboardingPage: 0 }),
+      jumpDownload: () => { this.setState({ screen: 'model_download', whisperProgress: 42, gemmaProgress: 18 }); this._startDownload(); },
+      jumpLogin: () => this.setState({ screen: 'login' }),
+      jumpDashboard: () => this.setState({ screen: 'dashboard' }),
+      jumpProject: () => this.setState({ screen: 'project_detail' }),
+      jumpCreate: () => this.setState({ screen: 'create_project', createStep: 0 }),
+      jumpParams: () => this.setState({ screen: 'project_params' }),
+      jumpVisitSetup: () => this.setState({ screen: 'visit_setup' }),
+      jumpCaptureA: () => this.setState({ screen: 'visit_capture', captureVariant: 'A', activeTab: 'photos', visitTimer: 762 }),
+      jumpCaptureB: () => this.setState({ screen: 'visit_capture', captureVariant: 'B', activeTab: 'photos', visitTimer: 762 }),
+      jumpReport: () => this.setState({ screen: 'report' }),
+
+      // Create wizard
+      createStep: this.state.createStep,
+      showCreateBack: this.state.createStep > 0,
+      createStepLabel: ['Step 1 of 4 — Basic Info','Step 2 of 4 — Location','Step 3 of 4 — Timeline & Budget','Step 4 of 4 — Team'][this.state.createStep] || 'Step 1 of 4',
+      createStepNum: (this.state.createStep + 1) + ' / 4',
+      createProgressW: ['25%','50%','75%','100%'][this.state.createStep] || '25%',
+      createNextLabel: this.state.createStep === 3 ? 'Create Project ✓' : 'Next →',
+      step0Display: this.state.createStep === 0 ? 'flex' : 'none',
+      step1Display: this.state.createStep === 1 ? 'flex' : 'none',
+      step2Display: this.state.createStep === 2 ? 'flex' : 'none',
+      step3Display: this.state.createStep === 3 ? 'flex' : 'none',
+      createNext: () => {
+        if (this.state.createStep < 3) { this.setState(s => ({ createStep: s.createStep + 1 })); }
+        else { this.setState({ screen: 'project_detail', createStep: 0 }); }
+      },
+      createPrev: () => this.setState(s => ({ createStep: Math.max(0, s.createStep - 1) })),
+
+      // Saved clips
+      savedClips,
+      hasClips: savedClips.length > 0,
+      clipCount: savedClips.length,
+      clipCountLabel: savedClips.length === 0 ? 'No clips yet' : savedClips.length + ' clip' + (savedClips.length > 1 ? 's' : '') + ' saved',
+      clip0: savedClips[0] || null,
+      clip0time: savedClips[0] ? savedClips[0].time : '',
+      clip0dur: savedClips[0] ? savedClips[0].dur + 's' : '',
+      clip0text: savedClips[0] ? savedClips[0].transcript : '',
+      clip1: savedClips[1] || null,
+      clip1time: savedClips[1] ? savedClips[1].time : '',
+      clip1dur: savedClips[1] ? savedClips[1].dur + 's' : '',
+      clip1text: savedClips[1] ? savedClips[1].transcript.slice(0, 60) + '…' : '',
+    };
+  }
+}
+</script>
+</body>
+</html>

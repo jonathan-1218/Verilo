@@ -1,0 +1,11 @@
+# Secrets — never commit
+client_secret*.json
+*.env
+!*.env.example
+
+# OS / IDE noise
+.DS_Store
+.idea/
+
+# Build artifacts
+**/build/
