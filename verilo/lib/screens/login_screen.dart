@@ -107,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 6),
                 Text(
                   _codeSent
-                      ? 'Enter the sign-in code we emailed to ${_emailCtrl.text.trim()}.'
+                      ? 'Enter the sign-in code we emailed to ${_emailCtrl.text.trim()}. It expires in 5 minutes.'
                       : "We'll email you a sign-in code. No password needed.",
                   style: AppText.spaceGrotesk(size: 14, color: AppColors.textSecondary, height: 1.55),
                 ),

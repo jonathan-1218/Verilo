@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/app_scope.dart';
 import '../core/colors.dart';
 import '../core/database.dart';
+import '../core/repository.dart' show TranscriptState;
 import '../core/text_styles.dart';
 import '../core/widgets.dart';
 
@@ -29,6 +31,8 @@ class _VisitCaptureScreenState extends State<VisitCaptureScreen> with TickerProv
   final _notesCtrl = TextEditingController();
   Timer? _notesDebounce;
   bool _ending = false;
+  final _player = AudioPlayer();
+  int? _playingClipId;
 
   late final AnimationController _timerCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 1))
     ..addListener(() { if (mounted) setState(() {}); })
@@ -40,6 +44,65 @@ class _VisitCaptureScreenState extends State<VisitCaptureScreen> with TickerProv
   void initState() {
     super.initState();
     _load();
+    _player.onPlayerComplete.listen((_) {
+      if (mounted) setState(() => _playingClipId = null);
+    });
+    appRepository.transcriptionEvents.addListener(_onTranscriptionEvent);
+  }
+
+  Future<void> _onTranscriptionEvent() async {
+    // queue state changed or a transcript landed — re-read the local rows
+    final clips = await appRepository.clipsForVisit(widget.visitId);
+    if (mounted) setState(() => _clips = clips);
+  }
+
+  Future<void> _deleteClip(VoiceClip clip) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgCardElevated,
+        title: Text('Delete recording?', style: AppText.spaceGrotesk(size: 16, weight: FontWeight.w700)),
+        content: Text('The audio and its transcript are removed from this visit.',
+            style: AppText.spaceGrotesk(size: 13, color: AppColors.textSecondary, height: 1.5)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text('Cancel', style: AppText.spaceGrotesk(size: 13, color: AppColors.textSecondary))),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text('Delete', style: AppText.spaceGrotesk(size: 13, weight: FontWeight.w600, color: AppColors.red))),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    if (_playingClipId == clip.id) {
+      await _player.stop();
+      _playingClipId = null;
+    }
+    await appRepository.deleteVoiceClip(clip);
+    if (mounted) setState(() => _clips = _clips.where((c) => c.id != clip.id).toList());
+  }
+
+  Future<void> _togglePlay(VoiceClip clip) async {
+    if (_playingClipId == clip.id) {
+      await _player.stop();
+      setState(() => _playingClipId = null);
+      return;
+    }
+    await _player.stop();
+    if (File(clip.filePath).existsSync()) {
+      await _player.play(DeviceFileSource(clip.filePath));
+    } else if (clip.storagePath != null) {
+      // local file gone (e.g. clip recorded on another device) — stream it
+      await _player.play(UrlSource(await appRepository.signedUrlFor(clip.storagePath!)));
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Recording unavailable on this device')));
+      }
+      return;
+    }
+    setState(() => _playingClipId = clip.id);
   }
 
   Future<void> _load() async {
@@ -62,11 +125,13 @@ class _VisitCaptureScreenState extends State<VisitCaptureScreen> with TickerProv
 
   @override
   void dispose() {
+    appRepository.transcriptionEvents.removeListener(_onTranscriptionEvent);
     _timerCtrl.dispose();
     _waveCtrl.dispose();
     _recordPulse.dispose();
     _notesDebounce?.cancel();
     _notesCtrl.dispose();
+    _player.dispose();
     super.dispose();
   }
 
@@ -91,7 +156,8 @@ class _VisitCaptureScreenState extends State<VisitCaptureScreen> with TickerProv
       final duration = _recordStart == null ? 0 : DateTime.now().difference(_recordStart!).inSeconds;
       setState(() => _isRecording = false);
       if (path != null) {
-        final clip = await appRepository.saveVoiceClip(visitId: widget.visitId, filePath: path, durationSeconds: duration);
+        final clip = await appRepository.saveVoiceClip(
+            visitId: widget.visitId, filePath: path, durationSeconds: duration);
         if (mounted) setState(() => _clips = [..._clips, clip]);
       }
     } else {
@@ -123,7 +189,7 @@ class _VisitCaptureScreenState extends State<VisitCaptureScreen> with TickerProv
     if (visit == null) return;
     setState(() => _ending = true);
     await appRepository.endVisit(visit, notes: _notesCtrl.text);
-    if (mounted) context.go('/report?visitId=${widget.visitId}');
+    if (mounted) context.pushReplacement('/report?visitId=${widget.visitId}');
   }
 
   @override
@@ -151,6 +217,7 @@ class _VisitCaptureScreenState extends State<VisitCaptureScreen> with TickerProv
                       tab: _tab, isRecording: _isRecording,
                       waveCtrl: _waveCtrl, recordPulse: _recordPulse,
                       photos: _photos, clips: _clips, checklist: _checklist, notesCtrl: _notesCtrl,
+                      playingClipId: _playingClipId, onPlayClip: _togglePlay, onDeleteClip: _deleteClip,
                       onCapturePhoto: _capturePhoto, onToggleRecording: _toggleRecording,
                       onToggleChecklist: _toggleChecklist, onNotesChanged: _onNotesChanged)
                   : _ScrollContent(
@@ -254,6 +321,7 @@ class _TabbedContent extends StatelessWidget {
   const _TabbedContent({
     required this.tab, required this.isRecording, required this.waveCtrl, required this.recordPulse,
     required this.photos, required this.clips, required this.checklist, required this.notesCtrl,
+    required this.playingClipId, required this.onPlayClip, required this.onDeleteClip,
     required this.onCapturePhoto, required this.onToggleRecording, required this.onToggleChecklist, required this.onNotesChanged,
   });
   final int tab;
@@ -263,6 +331,9 @@ class _TabbedContent extends StatelessWidget {
   final List<VoiceClip> clips;
   final List<ChecklistItem> checklist;
   final TextEditingController notesCtrl;
+  final int? playingClipId;
+  final ValueChanged<VoiceClip> onPlayClip;
+  final ValueChanged<VoiceClip> onDeleteClip;
   final VoidCallback onCapturePhoto, onToggleRecording;
   final ValueChanged<ChecklistItem> onToggleChecklist;
   final ValueChanged<String> onNotesChanged;
@@ -271,7 +342,7 @@ class _TabbedContent extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (tab) {
       case 0: return _PhotosPane(photos: photos, onCapture: onCapturePhoto);
-      case 1: return _VoicePane(isRecording: isRecording, waveCtrl: waveCtrl, recordPulse: recordPulse, clips: clips, onToggle: onToggleRecording);
+      case 1: return _VoicePane(isRecording: isRecording, waveCtrl: waveCtrl, recordPulse: recordPulse, clips: clips, onToggle: onToggleRecording, playingClipId: playingClipId, onPlayClip: onPlayClip, onDeleteClip: onDeleteClip);
       case 2: return _ChecklistPane(items: checklist, onToggle: onToggleChecklist);
       case 3: return _NotesPane(controller: notesCtrl, onChanged: onNotesChanged);
       default: return const SizedBox.shrink();
@@ -462,11 +533,17 @@ class _PhotoStrip extends StatelessWidget {
 // ── Voice ────────────────────────────────────────────────────────────────────
 
 class _VoicePane extends StatelessWidget {
-  const _VoicePane({required this.isRecording, required this.waveCtrl, required this.recordPulse, required this.clips, required this.onToggle});
+  const _VoicePane({
+    required this.isRecording, required this.waveCtrl, required this.recordPulse, required this.clips,
+    required this.onToggle, required this.playingClipId, required this.onPlayClip, required this.onDeleteClip,
+  });
   final bool isRecording;
   final AnimationController waveCtrl, recordPulse;
   final List<VoiceClip> clips;
   final VoidCallback onToggle;
+  final int? playingClipId;
+  final ValueChanged<VoiceClip> onPlayClip;
+  final ValueChanged<VoiceClip> onDeleteClip;
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
@@ -501,7 +578,12 @@ class _VoicePane extends StatelessWidget {
             const SizedBox(height: 12),
             Text(isRecording ? 'Recording… tap to stop' : 'Tap to record',
                 style: AppText.spaceGrotesk(size: 12, color: isRecording ? AppColors.red : AppColors.textSecondary)),
-            if (clips.isNotEmpty) ...clips.map((c) => _ClipRow(clip: c)),
+            if (clips.isNotEmpty)
+              ...clips.map((c) => _ClipRow(
+                  clip: c,
+                  playing: playingClipId == c.id,
+                  onPlay: () => onPlayClip(c),
+                  onDelete: () => onDeleteClip(c))),
           ],
         ),
       );
@@ -570,41 +652,92 @@ class _CompactVoice extends StatelessWidget {
 }
 
 class _ClipRow extends StatelessWidget {
-  const _ClipRow({required this.clip});
+  const _ClipRow({required this.clip, required this.playing, required this.onPlay, required this.onDelete});
   final VoiceClip clip;
+  final bool playing;
+  final VoidCallback onPlay;
+  final VoidCallback onDelete;
+
+  String _statusText(TranscriptState state) => switch (state) {
+        TranscriptState.running => 'Transcribing…',
+        TranscriptState.queued => 'Waiting to transcribe…',
+        TranscriptState.paused => 'Transcription paused',
+        TranscriptState.none =>
+          'No transcript — download the Whisper model or turn on the cloud fallback (Models screen)',
+      };
 
   @override
-  Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(top: 10),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: AppColors.bgCardElevated, borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              Container(
+  Widget build(BuildContext context) {
+    final state = appRepository.transcriptStateOf(clip.id);
+    final done = clip.transcript.isNotEmpty;
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: AppColors.bgCardElevated, borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            GestureDetector(
+              onTap: onPlay,
+              child: Container(
                 width: 32, height: 32,
-                decoration: const BoxDecoration(color: AppColors.bgCard, shape: BoxShape.circle),
-                child: const Icon(Icons.mic, size: 16, color: AppColors.copperMid),
+                decoration: BoxDecoration(
+                  color: playing ? AppColors.copperMid : AppColors.bgCard,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(playing ? Icons.stop : Icons.play_arrow,
+                    size: 18, color: playing ? Colors.white : AppColors.copperMid),
               ),
-              const SizedBox(width: 10),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${clip.recordedAt.hour.toString().padLeft(2, '0')}:${clip.recordedAt.minute.toString().padLeft(2, '0')}',
-                    style: AppText.spaceGrotesk(size: 13, weight: FontWeight.w600)),
-                Text('0:${clip.durationSeconds.toString().padLeft(2, '0')}', style: AppText.jetBrainsMono(size: 10)),
-              ])),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: AppColors.copperMid.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
-                child: Text('SAVED', style: AppText.spaceGrotesk(size: 9, weight: FontWeight.w600, color: AppColors.copperMid)),
+            ),
+            const SizedBox(width: 10),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('${clip.recordedAt.hour.toString().padLeft(2, '0')}:${clip.recordedAt.minute.toString().padLeft(2, '0')}',
+                  style: AppText.spaceGrotesk(size: 13, weight: FontWeight.w600)),
+              Text('0:${clip.durationSeconds.toString().padLeft(2, '0')}', style: AppText.jetBrainsMono(size: 10)),
+            ])),
+            if (!done && state != TranscriptState.none)
+              GestureDetector(
+                onTap: () => state == TranscriptState.paused
+                    ? appRepository.resumeTranscription(clip.id)
+                    : appRepository.pauseTranscription(clip.id),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(
+                    state == TranscriptState.paused ? Icons.play_circle_outline : Icons.pause_circle_outline,
+                    size: 22, color: AppColors.copperMid,
+                  ),
+                ),
               ),
-            ]),
-            const Divider(height: 16, color: AppColors.borderSubtle),
-            Text(clip.transcript.isEmpty ? 'Transcript unavailable (on-device model not enabled)' : clip.transcript,
-                style: AppText.spaceGrotesk(size: 12, color: AppColors.textSecondary, height: 1.5)),
-          ],
-        ),
-      );
+            GestureDetector(
+              onTap: onDelete,
+              behavior: HitTestBehavior.opaque,
+              child: const Padding(
+                padding: EdgeInsets.all(8),
+                child: Icon(Icons.delete_outline, size: 20, color: AppColors.textMuted),
+              ),
+            ),
+          ]),
+          const Divider(height: 16, color: AppColors.borderSubtle),
+          Row(
+            children: [
+              if (state == TranscriptState.running && !done) ...[
+                const SizedBox(
+                    width: 11, height: 11,
+                    child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.copperMid)),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                child: Text(done ? clip.transcript : _statusText(state),
+                    style: AppText.spaceGrotesk(size: 12, color: AppColors.textSecondary, height: 1.5)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ── Checklist ────────────────────────────────────────────────────────────────

@@ -56,7 +56,7 @@ class _VisitSetupScreenState extends State<VisitSetupScreen> with TickerProvider
         startLng: _position?.longitude,
         gpsAccuracyMeters: _position?.accuracy,
       );
-      if (mounted) context.go('/visit-capture?visitId=${visit.id}');
+      if (mounted) context.pushReplacement('/visit-capture?visitId=${visit.id}');
     } catch (_) {
       // ponytail: starting a visit needs connectivity (no offline outbox yet);
       // surface that instead of failing silently

@@ -12,9 +12,10 @@ void main() {
 
   testWidgets('boots to login when signed out', (tester) async {
     await tester.pumpWidget(const VeriloApp());
-    await tester.pump(const Duration(seconds: 2)); // splash delay
-    await tester.pump();
-    await tester.pump();
+    // splash delay + extra frames for GoRouter's async redirect to resolve
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
     expect(find.byType(LoginScreen), findsOneWidget);
   });
 }

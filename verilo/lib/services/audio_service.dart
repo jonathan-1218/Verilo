@@ -14,9 +14,11 @@ class AudioService {
   Future<bool> startRecording() async {
     if (!await requestPermission()) return false;
     final dir = await getApplicationDocumentsDirectory();
-    _currentPath = '${dir.path}/clip_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    // 16kHz mono WAV: the exact input whisper.cpp needs for on-device
+    // transcription (it can't decode AAC); ~1.9MB/min is fine for short clips
+    _currentPath = '${dir.path}/clip_${DateTime.now().millisecondsSinceEpoch}.wav';
     await _recorder.start(
-      const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 128000, sampleRate: 16000),
+      const RecordConfig(encoder: AudioEncoder.wav, sampleRate: 16000, numChannels: 1),
       path: _currentPath!,
     );
     return true;

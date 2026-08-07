@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:go_router/go_router.dart';
 import '../core/app_scope.dart';
 import '../core/colors.dart';
@@ -17,6 +19,8 @@ class ProjectDetailScreen extends StatefulWidget {
 class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   Project? _project;
   List<Visit> _visits = [];
+  List<Photo> _photos = [];
+  List<VoiceClip> _clips = [];
   bool _loading = true;
   bool _startingVisit = false;
 
@@ -31,8 +35,34 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   Future<void> _load() async {
     final project = await appRepository.projectById(_projectId);
     final visits = await appRepository.visitsForProject(_projectId);
+    final photos = await appRepository.photosForProject(_projectId);
+    final clips = await appRepository.clipsForProject(_projectId);
     if (!mounted) return;
-    setState(() { _project = project; _visits = visits.reversed.toList(); _loading = false; });
+    setState(() {
+      _project = project;
+      _visits = visits.reversed.toList();
+      _photos = photos;
+      _clips = clips;
+      _loading = false;
+    });
+  }
+
+  /// Saves one media file wherever the user picks (system save dialog).
+  /// Works for local captures and, when the local file is gone, the synced
+  /// cloud copy.
+  Future<void> _download({required String filePath, String? storagePath, required String name}) async {
+    final bytes = await appRepository.mediaBytes(filePath: filePath, storagePath: storagePath);
+    if (!mounted) return;
+    if (bytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('File unavailable — not on this device and not synced yet.')));
+      return;
+    }
+    final saved = await FlutterFileDialog.saveFile(
+        params: SaveFileDialogParams(data: bytes, fileName: name));
+    if (saved != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved $name')));
+    }
   }
 
   Future<void> _startVisit() async {
@@ -86,21 +116,60 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                       StatusChip(label: project.category.toUpperCase(), color: AppColors.textMuted),
                     ]),
                     const SizedBox(height: 14),
+                    // Fixed 2×2 grid so the card holds the same shape whether or
+                    // not the fields were filled in at creation time.
                     CardSurface(
-                      child: Row(children: [
-                        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text('BUDGET', style: AppText.label),
-                          const SizedBox(height: 4),
-                          Text('₹${(project.budgetCents / 100).round()}', style: AppText.spaceGrotesk(size: 16, weight: FontWeight.w700)),
+                      child: Column(children: [
+                        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Expanded(child: _Field(label: 'BUDGET', value: project.budgetCents > 0 ? '₹${(project.budgetCents / 100).round()}' : null, emphasis: true)),
+                          Expanded(child: _Field(label: 'PERIOD', value: _periodLabel(project))),
                         ]),
-                        const Spacer(),
-                        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                          Text('PERIOD', style: AppText.label),
-                          const SizedBox(height: 4),
-                          Text(_periodLabel(project), style: AppText.spaceGrotesk(size: 13, color: AppColors.textSecondary)),
+                        const SizedBox(height: 14),
+                        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Expanded(child: _Field(label: 'BENEFICIARIES', value: project.beneficiaries > 0 ? '${project.beneficiaries}' : null, emphasis: true)),
+                          Expanded(child: _Field(
+                            label: 'IMPLEMENTED BY',
+                            value: project.implementingAgency.isNotEmpty ? project.implementingAgency : 'Direct',
+                          )),
                         ]),
                       ]),
                     ),
+                    const SizedBox(height: 14),
+                    Text('MEDIA', style: AppText.label),
+                    const SizedBox(height: 10),
+                    if (_photos.isEmpty && _clips.isEmpty)
+                      CardSurface(
+                          child: Text('Photos and voice notes from visits appear here.',
+                              style: AppText.spaceGrotesk(size: 13, color: AppColors.textMuted)))
+                    else ...[
+                      if (_photos.isNotEmpty)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final p in _photos)
+                              _PhotoThumb(
+                                photo: p,
+                                onDownload: () => _download(
+                                    filePath: p.filePath,
+                                    storagePath: p.storagePath,
+                                    name: 'verilo_photo_${p.id}.jpg'),
+                              ),
+                          ],
+                        ),
+                      if (_clips.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        for (final c in _clips)
+                          _MediaClipRow(
+                            clip: c,
+                            onDownload: () => _download(
+                                filePath: c.filePath,
+                                storagePath: c.storagePath,
+                                name:
+                                    'verilo_clip_${c.id}.${c.filePath.endsWith('.wav') ? 'wav' : 'm4a'}'),
+                          ),
+                      ],
+                    ],
                     const SizedBox(height: 14),
                     Text('VISIT HISTORY', style: AppText.label),
                     const SizedBox(height: 10),
@@ -133,8 +202,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     );
   }
 
-  String _periodLabel(Project p) {
-    if (p.startDate == null) return '—';
+  String? _periodLabel(Project p) {
+    if (p.startDate == null) return null;
     final start = '${_month(p.startDate!.month)} ${p.startDate!.year}';
     final end = p.endDate == null ? 'ongoing' : '${_month(p.endDate!.month)} ${p.endDate!.year}';
     return '$start – $end';
@@ -142,6 +211,34 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
   static const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   String _month(int m) => _months[m - 1];
+}
+
+/// Label above value, with a muted placeholder when the value is missing, so
+/// an unfilled project still occupies the same space as a filled one.
+class _Field extends StatelessWidget {
+  const _Field({required this.label, required this.value, this.emphasis = false});
+  final String label;
+  final String? value;
+  final bool emphasis;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppText.label),
+          const SizedBox(height: 4),
+          Text(
+            value ?? 'Not set',
+            style: value == null
+                ? AppText.spaceGrotesk(size: 13, color: AppColors.textMuted)
+                : AppText.spaceGrotesk(
+                    size: emphasis ? 16 : 13,
+                    weight: emphasis ? FontWeight.w700 : FontWeight.w400,
+                    color: emphasis ? AppColors.textPrimary : AppColors.textSecondary,
+                  ),
+          ),
+        ],
+      );
 }
 
 class _Header extends StatelessWidget {
@@ -219,4 +316,77 @@ class _VisitRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 96px thumbnail with a download button. Local file renders; a cloud-only
+/// photo (viewed from another device) shows a placeholder but still downloads.
+class _PhotoThumb extends StatelessWidget {
+  const _PhotoThumb({required this.photo, required this.onDownload});
+  final Photo photo;
+  final VoidCallback onDownload;
+
+  @override
+  Widget build(BuildContext context) {
+    final file = File(photo.filePath);
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: file.existsSync()
+              ? Image.file(file, width: 96, height: 96, fit: BoxFit.cover)
+              : Container(
+                  width: 96, height: 96,
+                  color: AppColors.bgPlaceholder,
+                  child: const Icon(Icons.cloud_outlined, size: 22, color: AppColors.textMuted),
+                ),
+        ),
+        Positioned(
+          right: 4, bottom: 4,
+          child: GestureDetector(
+            onTap: onDownload,
+            child: Container(
+              padding: const EdgeInsets.all(5),
+              decoration: const BoxDecoration(color: AppColors.bgDeep, shape: BoxShape.circle),
+              child: const Icon(Icons.download, size: 13, color: AppColors.copperMid),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MediaClipRow extends StatelessWidget {
+  const _MediaClipRow({required this.clip, required this.onDownload});
+  final VoiceClip clip;
+  final VoidCallback onDownload;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(color: AppColors.bgCard, borderRadius: BorderRadius.circular(10)),
+        child: Row(
+          children: [
+            const Icon(Icons.mic, size: 16, color: AppColors.copperMid),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '${clip.recordedAt.day}/${clip.recordedAt.month}/${clip.recordedAt.year} '
+                '${clip.recordedAt.hour.toString().padLeft(2, '0')}:${clip.recordedAt.minute.toString().padLeft(2, '0')}'
+                ' · 0:${clip.durationSeconds.toString().padLeft(2, '0')}',
+                style: AppText.spaceGrotesk(size: 12),
+              ),
+            ),
+            GestureDetector(
+              onTap: onDownload,
+              behavior: HitTestBehavior.opaque,
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.download, size: 18, color: AppColors.copperMid),
+              ),
+            ),
+          ],
+        ),
+      );
 }

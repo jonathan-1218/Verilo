@@ -16,6 +16,17 @@
 	<string>Verilo saves geo-tagged audit photos to your photo library.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.verilo.verilo</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.verilo.verilo</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

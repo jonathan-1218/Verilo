@@ -14,9 +14,12 @@ abstract final class AppColors {
   static const textPrimary = Color(0xFFEDE8E3);
   static const textSecondary = Color(0xFF9A8F88);
   static const textMuted = Color(0xFF5C5550);
-  static const borderSubtle = Color(0x12FFFFFF);
-  static const amber = Color(0xFFD08848);
-  static const amberBg = Color(0x1FC87830);
+  // copper-warmed hairline: every card border carries the brand tint
+  static const borderSubtle = Color(0x1AD4956A);
+  // true warning amber — deliberately yellower than the brand copper so
+  // "pending/attention" state never reads as decoration
+  static const amber = Color(0xFFD9A441);
+  static const amberBg = Color(0x1FD9A441);
   static const red = Color(0xFFD44040);
   static const blue = Color(0xFF4880C8);
   static const copperGradient = LinearGradient(

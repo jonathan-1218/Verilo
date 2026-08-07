@@ -22,6 +22,11 @@ class Projects extends Table {
   DateTimeColumn get endDate => dateTime().nullable()();
   TextColumn get reviewInterval => text().withDefault(const Constant('Quarterly'))();
   TextColumn get status => text().withDefault(const Constant('Active'))();
+  // CSR reporting fields (Companies Act s.135 annexure). Empty agency means
+  // the project is implemented directly by the company.
+  TextColumn get implementingAgency => text().withDefault(const Constant(''))();
+  TextColumn get csrRegistrationNo => text().withDefault(const Constant(''))();
+  IntColumn get beneficiaries => integer().withDefault(const Constant(0))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
@@ -36,13 +41,15 @@ class Visits extends Table {
   RealColumn get gpsAccuracyMeters => real().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
   TextColumn get status => text().withDefault(const Constant('active'))(); // active | complete
-  TextColumn get reportHash => text().nullable()(); // SHA-256 of sealed report
+  TextColumn get reportHash => text().nullable()(); // SHA-256 of sealed report content
+  TextColumn get reportSignature => text().nullable()(); // "keyId:hmac" device seal of reportHash
 }
 
 class Photos extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get visitId => integer().references(Visits, #id)();
   TextColumn get filePath => text()();
+  TextColumn get storagePath => text().nullable()(); // set once uploaded to Supabase Storage
   RealColumn get lat => real().nullable()();
   RealColumn get lng => real().nullable()();
   RealColumn get accuracyMeters => real().nullable()();
@@ -53,6 +60,7 @@ class VoiceClips extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get visitId => integer().references(Visits, #id)();
   TextColumn get filePath => text()();
+  TextColumn get storagePath => text().nullable()(); // set once uploaded to Supabase Storage
   IntColumn get durationSeconds => integer().withDefault(const Constant(0))();
   TextColumn get transcript => text().withDefault(const Constant(''))();
   DateTimeColumn get recordedAt => dateTime().withDefault(currentDateAndTime)();
@@ -75,14 +83,48 @@ class ModelFiles extends Table {
   Set<Column> get primaryKey => {key};
 }
 
+/// Queue of writes that failed to reach Supabase (offline). Each row just
+/// points at a local id — replaying always re-reads current state from the
+/// local table rather than trusting a stale snapshot, so there's only ever
+/// one place a row's fields live.
+class Outbox extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get entity => text()(); // projects | visits | photos | voice_clips | checklist_items
+  TextColumn get op => text()(); // insert | update
+  TextColumn get payload => text()(); // JSON: {"id": <local id>}
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 // ── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [Projects, Visits, Photos, VoiceClips, ChecklistItems, ModelFiles])
+@DriftDatabase(tables: [Projects, Visits, Photos, VoiceClips, ChecklistItems, ModelFiles, Outbox])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
+  AppDatabase.forTesting(super.e); // in-memory executor for tests
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 5;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.addColumn(photos, photos.storagePath);
+            await m.addColumn(voiceClips, voiceClips.storagePath);
+          }
+          if (from < 3) {
+            await m.addColumn(visits, visits.reportSignature);
+          }
+          if (from < 4) {
+            await m.createTable(outbox);
+          }
+          if (from < 5) {
+            await m.addColumn(projects, projects.implementingAgency);
+            await m.addColumn(projects, projects.csrRegistrationNo);
+            await m.addColumn(projects, projects.beneficiaries);
+          }
+        },
+      );
 
   // ── Projects ──────────────────────────────────────────────────────────────
 

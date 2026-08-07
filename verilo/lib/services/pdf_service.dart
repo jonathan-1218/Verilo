@@ -1,7 +1,4 @@
-import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
-import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -9,17 +6,23 @@ import '../core/database.dart';
 
 class PdfService {
   static const _copper = PdfColor.fromInt(0xFFB87040);
-  static const _dark = PdfColor.fromInt(0xFF1E1B18);
   static const _text = PdfColor.fromInt(0xFF111827);
   static const _muted = PdfColor.fromInt(0xFF6B7280);
 
-  /// Generates the sealed PDF, writes it to disk, returns (filePath, sha256Hash).
-  Future<(String, String)> generateReport({
+  /// Generates the sealed PDF and writes it to disk, returning its file path.
+  /// The seal values (content hash + device HMAC + key id) are computed by
+  /// the caller over the canonical report payload — they can't be a hash of
+  /// the PDF bytes because they are printed inside the PDF itself.
+  Future<String> generateReport({
     required Visit visit,
     required Project project,
     required List<Photo> photos,
     required List<VoiceClip> clips,
     required String aiSummary,
+    required String sealHash,
+    required String sealHmac,
+    required String sealKeyId,
+    String? address, // reverse-geocoded, display-only (not part of the seal)
   }) async {
     final doc = pw.Document();
 
@@ -40,6 +43,7 @@ class PdfService {
           ('Category', project.category),
           ('Location', '${project.district}, ${project.state}'),
           ('GPS', visit.startLat != null ? '${visit.startLat!.toStringAsFixed(4)}°N ${visit.startLng!.toStringAsFixed(4)}°E' : '—'),
+          if (address != null) ('Address', address),
         ]),
         pw.SizedBox(height: 12),
         _section('Visit Information', [
@@ -67,19 +71,22 @@ class PdfService {
           _section('Field Notes (Manual)', [('Notes', visit.notes)]),
         ],
         pw.SizedBox(height: 20),
-        _integrityPlaceholder(),
+        _integrity(sealHash, sealHmac, sealKeyId),
       ],
     ));
 
     final bytes = await doc.save();
-    final hash = sha256.convert(bytes).toString();
-
-    // Embed hash into a second pass — simple: append it to the end
-    // ponytail: full cryptographic sealing (sign with keystore) is next step
-    final dir = await getApplicationDocumentsDirectory();
-    final path = '${dir.path}/report_${visit.id}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    // stable name: re-opening a report overwrites the same file instead of
+    // leaking a new timestamped PDF per view
+    final path = await reportPath(visit.id);
     await File(path).writeAsBytes(bytes);
-    return (path, hash);
+    return path;
+  }
+
+  /// Where the report PDF for [visitId] lives (whether or not it exists yet).
+  static Future<String> reportPath(int visitId) async {
+    final dir = await getApplicationDocumentsDirectory();
+    return '${dir.path}/report_$visitId.pdf';
   }
 
   pw.Widget _header(Project project, Visit visit) => pw.Container(
@@ -119,14 +126,18 @@ class PdfService {
         ],
       );
 
-  pw.Widget _integrityPlaceholder() => pw.Container(
+  pw.Widget _integrity(String hash, String hmac, String keyId) => pw.Container(
         padding: const pw.EdgeInsets.all(12),
         decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFFF5F5F4)),
         child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          pw.Text('INTEGRITY VERIFICATION', style: pw.TextStyle(fontSize: 8, color: _muted, letterSpacing: 1)),
+          pw.Text('INTEGRITY SEAL', style: pw.TextStyle(fontSize: 8, color: _muted, letterSpacing: 1)),
           pw.SizedBox(height: 6),
-          pw.Text('SHA-256 hash is embedded in filename and logged at upload time.',
-              style: pw.TextStyle(fontSize: 8, color: _muted)),
+          pw.Text('SHA-256  $hash', style: pw.TextStyle(font: pw.Font.courier(), fontSize: 7, color: _text)),
+          pw.Text('HMAC     $hmac', style: pw.TextStyle(font: pw.Font.courier(), fontSize: 7, color: _text)),
+          pw.Text('KEY ID   $keyId', style: pw.TextStyle(font: pw.Font.courier(), fontSize: 7, color: _copper)),
+          pw.SizedBox(height: 4),
+          pw.Text('Content digest sealed with a device-held secret at capture time.',
+              style: pw.TextStyle(fontSize: 7, color: _muted)),
         ]),
       );
 

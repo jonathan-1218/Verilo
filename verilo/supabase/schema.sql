@@ -20,8 +20,17 @@ create table if not exists public.projects (
   end_date timestamptz,
   review_interval text not null default 'Quarterly',
   status text not null default 'Active',
+  implementing_agency text not null default '', -- '' = implemented directly
+  csr_registration_no text not null default '',
+  beneficiaries integer not null default 0,
   created_at timestamptz not null default now()
 );
+
+-- Migration for databases created before the CSR columns existed. Safe to
+-- re-run; no-ops once the columns are present.
+alter table public.projects add column if not exists implementing_agency text not null default '';
+alter table public.projects add column if not exists csr_registration_no text not null default '';
+alter table public.projects add column if not exists beneficiaries integer not null default 0;
 
 create table if not exists public.visits (
   id bigint generated always as identity primary key,
@@ -35,8 +44,12 @@ create table if not exists public.visits (
   gps_accuracy_meters double precision,
   notes text not null default '',
   status text not null default 'active', -- active | complete
-  report_hash text
+  report_hash text,
+  report_signature text -- "keyId:hmac" device seal of report_hash
 );
+
+-- idempotent upgrade for databases created before report_signature existed
+alter table public.visits add column if not exists report_signature text;
 
 create table if not exists public.photos (
   id bigint generated always as identity primary key,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../core/app_scope.dart';
 import '../core/colors.dart';
 import '../core/text_styles.dart';
@@ -24,16 +25,47 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   DateTime? _dob;
   bool _saving = false;
   String? _error;
+  String? _avatarUrl;
+  bool _avatarBusy = false;
 
   String get _email => authService.currentSession?.user.email ?? '';
 
   @override
   void initState() {
     super.initState();
-    // Google/Outlook OAuth already hands us a display name — prefill it so
-    // the user only has to confirm it, not retype it.
+    // Prefill everything already on file: OAuth hands us a display name on
+    // first run, and a returning user gets their saved profile back instead
+    // of an empty form.
     final meta = authService.currentSession?.user.userMetadata;
-    _nameCtrl.text = (meta?['full_name'] as String?) ?? (meta?['name'] as String?) ?? '';
+    _nameCtrl.text = (meta?['name'] as String?) ?? (meta?['full_name'] as String?) ?? '';
+    _companyCtrl.text = (meta?['company'] as String?) ?? '';
+    _phoneCtrl.text = (meta?['phone'] as String?) ?? '';
+    _dob = DateTime.tryParse((meta?['dob'] as String?) ?? '');
+    if (_dob != null) _dobCtrl.text = _fmtDob(_dob!);
+    final role = (meta?['role'] as String?) ?? '';
+    if (role.isNotEmpty && role != 'CSR Officer') {
+      _role = 'Other';
+      _otherRoleCtrl.text = role;
+    }
+    _avatarUrl = authService.avatarUrl;
+  }
+
+  Future<void> _pickAvatar() async {
+    final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery, maxWidth: 512, maxHeight: 512, imageQuality: 82);
+    if (picked == null) return;
+    setState(() => _avatarBusy = true);
+    try {
+      final url = await authService.setAvatar(picked.path);
+      if (mounted) setState(() => _avatarUrl = url);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Could not upload the photo. Check your connection and try again.')));
+      }
+    } finally {
+      if (mounted) setState(() => _avatarBusy = false);
+    }
   }
 
   @override
@@ -104,23 +136,55 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 50, height: 50,
-                    decoration: const BoxDecoration(gradient: AppColors.copperGradient, shape: BoxShape.circle),
-                    alignment: Alignment.center,
-                    child: Text(initial.isNotEmpty ? initial[0].toUpperCase() : '?',
-                        style: AppText.spaceGrotesk(size: 19, weight: FontWeight.w700, color: Colors.white)),
+                  GestureDetector(
+                    onTap: _avatarBusy ? null : _pickAvatar,
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 56, height: 56,
+                          decoration: const BoxDecoration(gradient: AppColors.copperGradient, shape: BoxShape.circle),
+                          alignment: Alignment.center,
+                          child: _avatarBusy
+                              ? const SizedBox(
+                                  width: 20, height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : _avatarUrl != null
+                                  ? ClipOval(
+                                      child: Image.network(_avatarUrl!,
+                                          width: 56, height: 56, fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Text(
+                                              initial.isNotEmpty ? initial[0].toUpperCase() : '?',
+                                              style: AppText.spaceGrotesk(size: 19, weight: FontWeight.w700, color: Colors.white))))
+                                  : Text(initial.isNotEmpty ? initial[0].toUpperCase() : '?',
+                                      style: AppText.spaceGrotesk(size: 19, weight: FontWeight.w700, color: Colors.white)),
+                        ),
+                        Positioned(
+                          right: 0, bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(color: AppColors.bgCardElevated, shape: BoxShape.circle),
+                            child: const Icon(Icons.photo_camera, size: 11, color: AppColors.copperMid),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Complete your profile', style: AppText.spaceGrotesk(size: 20, weight: FontWeight.w700)),
+                        Text(authService.profileComplete ? 'Your profile' : 'Complete your profile',
+                            style: AppText.spaceGrotesk(size: 20, weight: FontWeight.w700)),
                         const SizedBox(height: 3),
                         Text(_email, style: AppText.spaceGrotesk(size: 12, color: AppColors.textSecondary), overflow: TextOverflow.ellipsis),
                       ],
                     ),
+                  ),
+                  IconButton(
+                    onPressed: () => context.push('/model-download'),
+                    icon: const Icon(Icons.download_outlined, color: AppColors.textSecondary),
+                    tooltip: 'On-device models',
                   ),
                 ],
               ),

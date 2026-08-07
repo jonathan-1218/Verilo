@@ -95,7 +95,18 @@ class _ProjectParamsScreenState extends State<ProjectParamsScreen> {
                             label: 'INTERVENTION',
                             rows: [
                               ('Category', project.category),
-                              ('SDG tags', project.sdgTags.replaceAll(',', ', ')),
+                              ('SDG tags', project.sdgTags.isEmpty ? '—' : project.sdgTags.replaceAll(',', ', ')),
+                              ('Beneficiaries', project.beneficiaries > 0 ? '${project.beneficiaries}' : '—'),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _ParamSection(
+                            icon: Icons.handshake_outlined,
+                            label: 'IMPLEMENTATION',
+                            rows: [
+                              ('Mode', project.implementingAgency.isEmpty ? 'Direct' : 'Implementing agency'),
+                              ('Agency', project.implementingAgency.isEmpty ? '—' : project.implementingAgency),
+                              ('CSR reg. no.', project.csrRegistrationNo.isEmpty ? '—' : project.csrRegistrationNo),
                             ],
                           ),
                           const SizedBox(height: 12),

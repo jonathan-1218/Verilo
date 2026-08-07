@@ -1,0 +1,9 @@
+# App icon from the brand mark (exports/). Regenerate with:
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: assets/branding/verilo-mark.png
+  adaptive_icon_background: "#211D18"
+  adaptive_icon_foreground: assets/branding/verilo-mark-transparent.png

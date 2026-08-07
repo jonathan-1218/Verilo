@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 import '../core/app_scope.dart';
@@ -25,7 +26,28 @@ class _ReportScreenState extends State<ReportScreen> {
   List<ChecklistItem> _checklist = [];
   String? _pdfPath;
   String? _pdfHash;
+  String? _pdfSignature;
+  String? _address;
   bool _loading = true;
+
+  /// Reverse-geocoded address for the visit's start point. Display-only —
+  /// never part of the sealed payload. Fail-quiet: offline or no geocoder
+  /// just means the row shows coordinates alone.
+  Future<String?> _resolveAddress(Visit visit) async {
+    if (visit.startLat == null || visit.startLng == null) return null;
+    try {
+      final places = await placemarkFromCoordinates(visit.startLat!, visit.startLng!);
+      if (places.isEmpty) return null;
+      final p = places.first;
+      final parts = [p.street, p.subLocality, p.locality, p.administrativeArea, p.postalCode]
+          .where((s) => s != null && s.isNotEmpty)
+          .cast<String>()
+          .toList();
+      return parts.isEmpty ? null : parts.join(', ');
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   void initState() {
@@ -34,27 +56,57 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Future<void> _load() async {
-    final visit = await appRepository.visitById(widget.visitId);
-    if (visit == null) return;
-    final project = await appRepository.projectById(visit.projectId);
+    var visit = await appRepository.visitById(widget.visitId);
+    final project = visit == null ? null : await appRepository.projectById(visit.projectId);
+    if (visit == null || project == null) {
+      if (mounted) setState(() => _loading = false); // build() shows the error state
+      return;
+    }
     final photos = await appRepository.photosForVisit(widget.visitId);
     final clips = await appRepository.clipsForVisit(widget.visitId);
     final checklist = await appRepository.checklistForVisit(widget.visitId);
-    if (project == null) return;
+    final address = await _resolveAddress(visit);
 
-    final (path, hash) = await PdfService().generateReport(
-      visit: visit, project: project, photos: photos, clips: clips,
-      aiSummary: visit.notes,
-    );
-    // seal once: the first generated PDF's hash is the record; regenerating
-    // on later views must not overwrite it
-    if (visit.reportHash == null) {
-      await appRepository.endVisit(visit, reportHash: hash);
+    // Seal once: the first open computes hash+HMAC (SealService owns the
+    // canonical payload) and stores them; every later open reuses the stored
+    // record so screen, PDF, and DB always show the same seal. A visit sealed
+    // under the old PDF-bytes scheme has no reportSignature — it falls into
+    // the else-branch once and is re-sealed under the content-hash scheme.
+    String hash, hmac, keyId;
+    final sealed = visit.reportHash != null && visit.reportSignature != null;
+    if (sealed) {
+      hash = visit.reportHash!;
+      final sep = visit.reportSignature!.indexOf(':');
+      keyId = visit.reportSignature!.substring(0, sep);
+      hmac = visit.reportSignature!.substring(sep + 1);
+    } else {
+      (hash, hmac, keyId) = await sealService.sealVisit(
+        visit: visit, project: project, checklist: checklist, clips: clips, photoCount: photos.length);
+      visit = await appRepository.endVisit(visit, reportHash: hash, reportSignature: '$keyId:$hmac');
+    }
+
+    // an already-sealed report with its PDF on disk is immutable — skip the
+    // summarize network call and regeneration entirely
+    var path = await PdfService.reportPath(visit.id);
+    if (!sealed || !File(path).existsSync()) {
+      final aiSummary = await summaryService.summarize(
+        clips.map((c) => c.transcript).toList(),
+        visit.notes,
+      );
+      path = await PdfService().generateReport(
+        visit: visit, project: project, photos: photos, clips: clips,
+        aiSummary: aiSummary, address: address,
+        sealHash: hash, sealHmac: hmac, sealKeyId: keyId,
+      );
     }
     if (!mounted) return;
     setState(() {
       _visit = visit; _project = project; _photos = photos; _clips = clips; _checklist = checklist;
-      _pdfPath = path; _pdfHash = visit.reportHash ?? hash; _loading = false;
+      _address = address;
+      _pdfPath = path;
+      _pdfHash = hash;
+      _pdfSignature = '$keyId:$hmac';
+      _loading = false;
     });
   }
 
@@ -78,8 +130,29 @@ class _ReportScreenState extends State<ReportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading || _visit == null || _project == null) {
+    if (_loading) {
       return const Scaffold(backgroundColor: AppColors.bgApp, body: Center(child: CircularProgressIndicator(color: AppColors.copperMid)));
+    }
+    if (_visit == null || _project == null) {
+      return Scaffold(
+        backgroundColor: AppColors.bgApp,
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Report unavailable', style: AppText.screenTitle),
+                const SizedBox(height: 8),
+                Text('This visit could not be loaded. Check your connection and try again.',
+                    textAlign: TextAlign.center,
+                    style: AppText.spaceGrotesk(size: 12, color: AppColors.textSecondary)),
+                const SizedBox(height: 16),
+                CopperButton(label: 'Go back', onTap: () => context.pop(), fullWidth: false),
+              ],
+            ),
+          ),
+        ),
+      );
     }
     final visit = _visit!, project = _project!;
     return Scaffold(
@@ -147,6 +220,7 @@ class _ReportScreenState extends State<ReportScreen> {
                             ('Officer', visit.officerName),
                             ('Duration', _duration(visit.startedAt, visit.endedAt)),
                             ('GPS Start', visit.startLat != null ? '${visit.startLat!.toStringAsFixed(4)}°N ${visit.startLng!.toStringAsFixed(4)}°E' : '—'),
+                            ('Address', _address ?? '—'),
                             ('Accuracy', visit.gpsAccuracyMeters != null ? '±${visit.gpsAccuracyMeters!.round()} m' : '—'),
                           ]),
                           const Divider(height: 1, color: Color(0xFFF0EDE9)),
@@ -158,7 +232,7 @@ class _ReportScreenState extends State<ReportScreen> {
                             ('Checklist', '${_checklist.where((c) => c.completed).length} / ${_checklist.length} items completed'),
                           ]),
                           const Divider(height: 1, color: Color(0xFFF0EDE9)),
-                          _IntegritySection(hash: _pdfHash ?? ''),
+                          _IntegritySection(hash: _pdfHash ?? '', signature: _pdfSignature ?? ''),
                         ],
                       ),
                     ),
@@ -252,24 +326,32 @@ class _PDFPhotoSection extends StatelessWidget {
 }
 
 class _IntegritySection extends StatelessWidget {
-  const _IntegritySection({required this.hash});
+  const _IntegritySection({required this.hash, required this.signature});
   final String hash;
+  final String signature;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(color: Color(0xFFF5F5F4), borderRadius: BorderRadius.vertical(bottom: Radius.circular(16))),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('INTEGRITY VERIFICATION', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: Color(0xFF9A8F88), letterSpacing: 1)),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6), border: Border.all(color: const Color(0xFFE5E7EB))),
-              child: Text('SHA-256: $hash', style: const TextStyle(fontFamily: 'monospace', fontSize: 9, color: Color(0xFF374151))),
-            ),
-          ],
-        ),
-      );
+  Widget build(BuildContext context) {
+    final parts = signature.split(':');
+    final keyId = parts.length == 2 ? parts[0] : '—';
+    final hmac = parts.length == 2 ? parts[1] : signature;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(color: Color(0xFFF5F5F4), borderRadius: BorderRadius.vertical(bottom: Radius.circular(16))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('INTEGRITY SEAL', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: Color(0xFF9A8F88), letterSpacing: 1)),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6), border: Border.all(color: const Color(0xFFE5E7EB))),
+            child: Text('SHA-256  $hash\nHMAC     $hmac\nKEY ID   $keyId',
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 9, color: Color(0xFF374151))),
+          ),
+        ],
+      ),
+    );
+  }
 }

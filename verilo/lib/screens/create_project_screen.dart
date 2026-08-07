@@ -14,9 +14,13 @@ class CreateProjectScreen extends StatefulWidget {
   State<CreateProjectScreen> createState() => _CreateProjectScreenState();
 }
 
+const _builtInCategories = ['WASH', 'Education', 'Skill Dev', 'Health', 'Environment'];
+
 class _CreateProjectScreenState extends State<CreateProjectScreen> {
   int _step = 0;
   String _selectedCategory = 'WASH';
+  /// Built-ins plus any category the officer typed in this session.
+  final List<String> _categories = [..._builtInCategories];
   final List<String> _selectedSDGs = ['SDG4', 'SDG6'];
   String _selectedInterval = 'Quarterly';
   String _selectedRadius = '500m';
@@ -32,7 +36,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   final _siteNameCtrl = TextEditingController();
   final _districtCtrl = TextEditingController();
   final _stateCtrl = TextEditingController();
-  final _budgetCtrl = TextEditingController(text: '0');
+  final _budgetCtrl = TextEditingController();
+  final _beneficiariesCtrl = TextEditingController();
+  final _agencyCtrl = TextEditingController();
+  final _csrRegCtrl = TextEditingController();
+  final _customCategoryCtrl = TextEditingController();
 
   @override
   void dispose() {
@@ -42,7 +50,55 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     _districtCtrl.dispose();
     _stateCtrl.dispose();
     _budgetCtrl.dispose();
+    _beneficiariesCtrl.dispose();
+    _agencyCtrl.dispose();
+    _csrRegCtrl.dispose();
+    _customCategoryCtrl.dispose();
     super.dispose();
+  }
+
+  /// Lets an officer add a category the built-in list doesn't cover (CSR
+  /// Schedule VII is broader than the five defaults).
+  Future<void> _addCustomCategory() async {
+    // owned by this State, not the dialog: disposing it as the dialog pops
+    // tears down a controller the TextField is still listening to
+    final ctrl = _customCategoryCtrl..clear();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgCardElevated,
+        title: Text('Custom category', style: AppText.spaceGrotesk(size: 15, weight: FontWeight.w600)),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          style: AppText.spaceGrotesk(size: 14),
+          decoration: InputDecoration(
+            hintText: 'e.g. Rural Livelihood',
+            hintStyle: AppText.spaceGrotesk(size: 14, color: AppColors.textMuted),
+            enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.borderSubtle)),
+            focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.copperMid)),
+          ),
+          onSubmitted: (v) => Navigator.pop(ctx, v),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: AppText.spaceGrotesk(size: 13, color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text),
+            child: Text('Add', style: AppText.spaceGrotesk(size: 13, color: AppColors.copperMid)),
+          ),
+        ],
+      ),
+    );
+    final trimmed = name?.trim() ?? '';
+    if (trimmed.isEmpty) return;
+    setState(() {
+      if (!_categories.contains(trimmed)) _categories.add(trimmed);
+      _selectedCategory = trimmed;
+    });
   }
 
   Future<void> _useCurrentLocation() async {
@@ -98,8 +154,16 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
         startDate: _startDate,
         endDate: _endDate,
         reviewInterval: _selectedInterval,
+        implementingAgency: _agencyCtrl.text.trim(),
+        csrRegistrationNo: _csrRegCtrl.text.trim(),
+        beneficiaries: int.tryParse(_beneficiariesCtrl.text.replaceAll(',', '').trim()) ?? 0,
       );
-      if (mounted) context.go('/project/${project.id}');
+      if (!mounted) return;
+      // pop first so the caller's `.then(_load)` fires and the dashboard picks
+      // up the new project, then open it on top of the refreshed stack
+      final router = GoRouter.of(context);
+      router.pop();
+      router.push('/project/${project.id}');
     } catch (e) {
       setState(() => _error = 'Could not create project: $e');
     } finally {
@@ -148,9 +212,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     switch (_step) {
       case 0:
         return _Step1(
-          nameCtrl: _nameCtrl, descCtrl: _descCtrl,
+          nameCtrl: _nameCtrl, descCtrl: _descCtrl, beneficiariesCtrl: _beneficiariesCtrl,
+          categories: _categories,
           selectedCategory: _selectedCategory, selectedSDGs: _selectedSDGs,
           onCategoryChanged: (v) => setState(() => _selectedCategory = v),
+          onAddCategory: _addCustomCategory,
           onSDGToggled: (v) => setState(() => _selectedSDGs.contains(v) ? _selectedSDGs.remove(v) : _selectedSDGs.add(v)),
         );
       case 1:
@@ -173,7 +239,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
           name: _nameCtrl.text, category: _selectedCategory,
           district: _districtCtrl.text, state: _stateCtrl.text,
           startDate: _startDate, endDate: _endDate, budget: _budgetCtrl.text,
-          interval: _selectedInterval,
+          interval: _selectedInterval, beneficiaries: _beneficiariesCtrl.text,
+          agencyCtrl: _agencyCtrl, csrRegCtrl: _csrRegCtrl,
         );
       default:
         return const SizedBox.shrink();
@@ -279,17 +346,19 @@ class _BottomCTAs extends StatelessWidget {
 
 class _Step1 extends StatelessWidget {
   const _Step1({
-    required this.nameCtrl, required this.descCtrl,
+    required this.nameCtrl, required this.descCtrl, required this.beneficiariesCtrl,
+    required this.categories,
     required this.selectedCategory, required this.selectedSDGs,
-    required this.onCategoryChanged, required this.onSDGToggled,
+    required this.onCategoryChanged, required this.onAddCategory, required this.onSDGToggled,
   });
-  final TextEditingController nameCtrl, descCtrl;
+  final TextEditingController nameCtrl, descCtrl, beneficiariesCtrl;
+  final List<String> categories;
   final String selectedCategory;
   final List<String> selectedSDGs;
   final ValueChanged<String> onCategoryChanged;
+  final VoidCallback onAddCategory;
   final ValueChanged<String> onSDGToggled;
 
-  static const _categories = ['WASH', 'Education', 'Skill Dev', 'Health', 'Environment'];
   static const _sdgs = ['SDG1', 'SDG2', 'SDG3', 'SDG4', 'SDG6', 'SDG8', 'SDG13', 'SDG17'];
 
   @override
@@ -302,15 +371,25 @@ class _Step1 extends StatelessWidget {
           const SizedBox(height: 16),
           Text('CATEGORY', style: AppText.label),
           const SizedBox(height: 8),
-          Wrap(spacing: 8, runSpacing: 8, children: _categories.map((c) => _SelectChip(
-            label: c, active: c == selectedCategory, onTap: () => onCategoryChanged(c),
-          )).toList()),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            ...categories.map((c) => _SelectChip(
+                  label: c, active: c == selectedCategory, onTap: () => onCategoryChanged(c),
+                )),
+            _SelectChip(label: '+ Custom', active: false, onTap: onAddCategory),
+          ]),
           const SizedBox(height: 16),
           Text('SDG TAGS', style: AppText.label),
           const SizedBox(height: 8),
           Wrap(spacing: 8, runSpacing: 8, children: _sdgs.map((s) => _SelectChip(
             label: s, active: selectedSDGs.contains(s), onTap: () => onSDGToggled(s),
           )).toList()),
+          const SizedBox(height: 16),
+          AppTextField(
+            label: 'Target beneficiaries',
+            hint: 'e.g. 340',
+            controller: beneficiariesCtrl,
+            keyboardType: TextInputType.number,
+          ),
           const SizedBox(height: 16),
           AppTextField(label: 'Description (optional)', hint: 'Describe the project goals…', controller: descCtrl, maxLines: 3),
         ],
@@ -410,7 +489,6 @@ class _Step3 extends StatelessWidget {
   Widget build(BuildContext context) {
     final months = (startDate != null && endDate != null) ? (endDate!.difference(startDate!).inDays / 30).round() : 0;
     final reviews = {'Monthly': 12, 'Quarterly': 4, 'Biannual': 2, 'Annual': 1}[selectedInterval] ?? 4;
-    final budget = double.tryParse(budgetCtrl.text.replaceAll(',', '')) ?? 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -438,15 +516,23 @@ class _Step3 extends StatelessWidget {
         const SizedBox(height: 16),
         AppTextField(label: 'Budget in ₹ (optional)', hint: '5,00,000', controller: budgetCtrl, keyboardType: TextInputType.number),
         const SizedBox(height: 16),
-        CardSurface(
-          elevated: true,
-          child: Column(children: [
-            _SummaryRow('Duration', months > 0 ? '$months months' : '—'),
-            const SizedBox(height: 8),
-            _SummaryRow('No. of reviews', '$reviews'),
-            const SizedBox(height: 8),
-            _SummaryRow('Budget per review', reviews > 0 ? '₹${(budget / reviews).round()}' : '—'),
-          ]),
+        // rebuilds as the budget is typed; nothing else calls setState here
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: budgetCtrl,
+          builder: (context, value, _) {
+            final budget = double.tryParse(value.text.replaceAll(',', '').replaceAll('₹', '')) ?? 0;
+            return CardSurface(
+              elevated: true,
+              child: Column(children: [
+                _SummaryRow('Duration', months > 0 ? '$months months' : '—'),
+                const SizedBox(height: 8),
+                _SummaryRow('No. of reviews', '$reviews'),
+                const SizedBox(height: 8),
+                _SummaryRow('Budget per review',
+                    budget > 0 ? '₹${(budget / reviews).round()}' : '—'),
+              ]),
+            );
+          },
         ),
       ],
     );
@@ -473,8 +559,10 @@ class _Step4 extends StatelessWidget {
   const _Step4({
     required this.name, required this.category, required this.district, required this.state,
     required this.startDate, required this.endDate, required this.budget, required this.interval,
+    required this.beneficiaries, required this.agencyCtrl, required this.csrRegCtrl,
   });
-  final String name, category, district, state, budget, interval;
+  final String name, category, district, state, budget, interval, beneficiaries;
+  final TextEditingController agencyCtrl, csrRegCtrl;
   final DateTime? startDate, endDate;
 
   String _fmt(DateTime? d) => d == null ? '—' : '${d.day}/${d.month}/${d.year}';
@@ -506,6 +594,21 @@ class _Step4 extends StatelessWidget {
           Text('Team invites for other officers aren\'t available yet.',
               style: AppText.spaceGrotesk(size: 11, color: AppColors.textMuted)),
           const SizedBox(height: 20),
+          Text('IMPLEMENTATION', style: AppText.label),
+          const SizedBox(height: 12),
+          AppTextField(
+            label: 'Implementing agency (leave blank if direct)',
+            hint: 'e.g. Nandi Foundation',
+            controller: agencyCtrl,
+          ),
+          const SizedBox(height: 12),
+          AppTextField(
+            label: 'CSR registration no. (CSR-1)',
+            hint: 'CSR00012345',
+            controller: csrRegCtrl,
+            keyboardType: TextInputType.text,
+          ),
+          const SizedBox(height: 20),
           Text('PROJECT SUMMARY', style: AppText.label),
           const SizedBox(height: 10),
           Container(
@@ -525,6 +628,8 @@ class _Step4 extends StatelessWidget {
               _SummaryRow('Duration', '${_fmt(startDate)} – ${_fmt(endDate)}'),
               const SizedBox(height: 8),
               _SummaryRow('Budget', '₹${budget.isEmpty ? '0' : budget}'),
+              const SizedBox(height: 8),
+              _SummaryRow('Beneficiaries', beneficiaries.isEmpty ? '—' : beneficiaries),
               const SizedBox(height: 8),
               _SummaryRow('Reviews', interval),
             ]),
