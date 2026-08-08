@@ -107,7 +107,15 @@ class _VisitCaptureScreenState extends State<VisitCaptureScreen> with TickerProv
 
   Future<void> _load() async {
     final visit = await appRepository.visitById(widget.visitId);
-    if (visit == null) return;
+    if (visit == null) {
+      // no cached/remote copy of this visit — nothing to show, so bounce
+      // back instead of spinning forever
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Couldn't load this visit.")));
+        context.pop();
+      }
+      return;
+    }
     final (project, photos, clips, checklist) = await (
       appRepository.projectById(visit.projectId),
       appRepository.photosForVisit(widget.visitId),
