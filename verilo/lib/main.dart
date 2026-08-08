@@ -31,11 +31,11 @@ Future<void> main() async {
 }
 
 Future<void> _init() async {
-  await Supabase.initialize(
-    url: dotenv.get('SUPABASE_URL'),
-    anonKey: dotenv.get('SUPABASE_ANON_KEY'),
-  );
-  displayScale.value = (await SharedPreferences.getInstance()).getDouble(kDisplayScaleKey) ?? 1.0;
+  final (_, prefs) = await (
+    Supabase.initialize(url: dotenv.get('SUPABASE_URL'), anonKey: dotenv.get('SUPABASE_ANON_KEY')),
+    SharedPreferences.getInstance(),
+  ).wait;
+  displayScale.value = prefs.getDouble(kDisplayScaleKey) ?? 1.0;
   runApp(const VeriloApp());
 }
 

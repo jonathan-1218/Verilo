@@ -424,9 +424,9 @@ class AppRepository {
     // local cache only: starting a visit must not wait on the network
     final project = await (_db.select(_db.projects)..where((p) => p.id.equals(projectId))).getSingleOrNull();
     final category = project?.category;
-    for (final label in kChecklistsByCategory[category] ?? kDefaultChecklist) {
-      await addChecklistItem(result.id, label);
-    }
+    await Future.wait([
+      for (final label in kChecklistsByCategory[category] ?? kDefaultChecklist) addChecklistItem(result.id, label),
+    ]);
     return result;
   }
 

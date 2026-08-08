@@ -33,10 +33,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   Future<void> _load() async {
-    final project = await appRepository.projectById(_projectId);
-    final visits = await appRepository.visitsForProject(_projectId);
-    final photos = await appRepository.photosForProject(_projectId);
-    final clips = await appRepository.clipsForProject(_projectId);
+    final (project, visits, photos, clips) = await (
+      appRepository.projectById(_projectId),
+      appRepository.visitsForProject(_projectId),
+      appRepository.photosForProject(_projectId),
+      appRepository.clipsForProject(_projectId),
+    ).wait;
     if (!mounted) return;
     setState(() {
       _project = project;

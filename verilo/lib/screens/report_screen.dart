@@ -57,15 +57,21 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Future<void> _load() async {
     var visit = await appRepository.visitById(widget.visitId);
-    final project = visit == null ? null : await appRepository.projectById(visit.projectId);
-    if (visit == null || project == null) {
+    if (visit == null) {
       if (mounted) setState(() => _loading = false); // build() shows the error state
       return;
     }
-    final photos = await appRepository.photosForVisit(widget.visitId);
-    final clips = await appRepository.clipsForVisit(widget.visitId);
-    final checklist = await appRepository.checklistForVisit(widget.visitId);
-    final address = await _resolveAddress(visit);
+    final (project, photos, clips, checklist, address) = await (
+      appRepository.projectById(visit.projectId),
+      appRepository.photosForVisit(widget.visitId),
+      appRepository.clipsForVisit(widget.visitId),
+      appRepository.checklistForVisit(widget.visitId),
+      _resolveAddress(visit),
+    ).wait;
+    if (project == null) {
+      if (mounted) setState(() => _loading = false); // build() shows the error state
+      return;
+    }
 
     // Seal once: the first open computes hash+HMAC (SealService owns the
     // canonical payload) and stores them; every later open reuses the stored

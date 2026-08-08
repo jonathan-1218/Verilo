@@ -108,10 +108,12 @@ class _VisitCaptureScreenState extends State<VisitCaptureScreen> with TickerProv
   Future<void> _load() async {
     final visit = await appRepository.visitById(widget.visitId);
     if (visit == null) return;
-    final project = await appRepository.projectById(visit.projectId);
-    final photos = await appRepository.photosForVisit(widget.visitId);
-    final clips = await appRepository.clipsForVisit(widget.visitId);
-    final checklist = await appRepository.checklistForVisit(widget.visitId);
+    final (project, photos, clips, checklist) = await (
+      appRepository.projectById(visit.projectId),
+      appRepository.photosForVisit(widget.visitId),
+      appRepository.clipsForVisit(widget.visitId),
+      appRepository.checklistForVisit(widget.visitId),
+    ).wait;
     if (!mounted) return;
     setState(() {
       _visit = visit;
